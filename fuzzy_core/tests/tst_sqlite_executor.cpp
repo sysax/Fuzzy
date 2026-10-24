@@ -1,6 +1,7 @@
 #include "fuzzy/core/SqliteExecutor.h"
 
 #include <QtTest>
+#include <QDir>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QVariant>
@@ -16,7 +17,7 @@ private slots:
 
 void TstSqliteExecutor::ejecutaSentenciasYReportaAfectadas()
 {
-    const QString db_path = QStringLiteral("/tmp/opencode/fuzzy_phase3_test.db");
+    const QString db_path = QDir::tempPath() + QStringLiteral("/fuzzy_phase3_test.db");
     fuzzy::core::SqliteExecutor executor(QStringLiteral("fuzzy_core"), db_path);
 
     // Sentencia sin parámetros: via exec(sql).
@@ -40,7 +41,7 @@ void TstSqliteExecutor::ejecutaSentenciasYReportaAfectadas()
 void TstSqliteExecutor::operacionDirectaConQSqlite()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), QStringLiteral("fuzzy_core"));
-    db.setDatabaseName(QStringLiteral("/tmp/opencode/fuzzy_phase3_direct.db"));
+    db.setDatabaseName(QDir::tempPath() + QStringLiteral("/fuzzy_phase3_direct.db"));
     db.open();
 
     QSqlQuery query(db);
