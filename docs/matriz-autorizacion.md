@@ -2,7 +2,7 @@
 
 Derivada de `FuzzyApp@f3afa94`: el enum `Accion` de `fuzzy_core/services/AuthService.h` y las 60 políticas RLS de `supabase/migrations`. Es el contrato que `Politicas::exigir` debe reproducir.
 
-**Estado:** borrador de fase 0. Se congela con un test de snapshot en la fase 3.
+**Estado:** congelado en Fase 3 con el test de snapshot `tst_politicas` (`fuzzy_core`). Cualquier cambio exige editar este documento y el test en el mismo commit.
 
 ## 1. Planos de identidad
 
