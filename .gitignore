@@ -1,0 +1,34 @@
+# Binarios y artefactos de compilación
+build/
+build-*/
+cmake-build-*/
+install/
+
+# Toolchain local (atlas, turso). Ver README.md
+.tools/
+
+# Bases de datos, volcados y artefactos locales
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.dump
+db/local/
+
+# Entorno y secretos
+.env
+.env.*
+secrets/
+
+# Qt
+*.qmlc
+*.jsc
+.qmllint.cache/
+.qmlformat.ini
+
+# Editores
+.idea/
+.vscode/
+*.user
+*.swp

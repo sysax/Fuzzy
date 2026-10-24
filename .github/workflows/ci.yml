@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema:
+    name: Esquema
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Atlas
+        run: |
+          curl -sSfL https://atlasbinaries.com/atlas/atlas-community-linux-amd64-v1.3.0 \
+            -o "$RUNNER_TEMP/atlas"
+          chmod +x "$RUNNER_TEMP/atlas"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Reconstruir los cuatro esquemas
+        run: tools/db-rebuild.sh
+
+      - name: Validar migraciones
+        run: |
+          for db in clinic portal inbox directory; do
+            atlas migrate validate --dir "file://$PWD/db/migrations/$db"
+          done
+
+  qt:
+    name: Qt
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: Pruebas
+        run: ctest --test-dir build --output-on-failure
+
+      - name: qmllint
+        run: qmllint fuzzy_desktop/Main.qml
