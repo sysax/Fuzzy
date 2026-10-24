@@ -34,3 +34,36 @@ env "directory" {
     dir = "file://db/migrations/directory"
   }
 }
+
+# Entornos remotos (Fase 2). La URL y el token se inyectan por CLI
+# (`--url "libsql://<db>?authToken=<token>"` con TURSO_DATABASE_TOKEN_*), de
+# modo que aquí no se escriben credenciales.
+# Producción se incorpora en la fase 10 (ver docs/PLAN.md §10).
+
+env "staging-clinic" {
+  url = "libsql://fuzzy-staging-clinic"
+  migration {
+    dir = "file://db/migrations/clinic"
+  }
+}
+
+env "staging-portal" {
+  url = "libsql://fuzzy-staging-portal"
+  migration {
+    dir = "file://db/migrations/portal"
+  }
+}
+
+env "staging-inbox" {
+  url = "libsql://fuzzy-staging-inbox"
+  migration {
+    dir = "file://db/migrations/inbox"
+  }
+}
+
+env "staging-directory" {
+  url = "libsql://fuzzy-staging-directory"
+  migration {
+    dir = "file://db/migrations/directory"
+  }
+}

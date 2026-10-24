@@ -1,0 +1,26 @@
+{
+  "clinicas": [
+    {
+      "uuid": "55555555-5555-4555-8555-555555555501",
+      "nombre": "Clínica Veterinaria Staging 1",
+      "ciudad": "Bogotá",
+      "direccion": "Av. Staging 1 #100",
+      "telefono": "+57 300 100 0001",
+      "inbox_url": "https://staging-1.fuzzycloud.local/inbox",
+      "inbox_token": "staging-inbox-token-1",
+      "activa": true,
+      "updated_at": 1760000000000
+    },
+    {
+      "uuid": "55555555-5555-4555-8555-555555555502",
+      "nombre": "Clínica Veterinaria Staging 2",
+      "ciudad": "Medellín",
+      "direccion": "Calle Staging 2 #200",
+      "telefono": "+57 300 100 0002",
+      "inbox_url": "https://staging-2.fuzzycloud.local/inbox",
+      "inbox_token": "staging-inbox-token-2",
+      "activa": true,
+      "updated_at": 1760000000000
+    }
+  ]
+}
