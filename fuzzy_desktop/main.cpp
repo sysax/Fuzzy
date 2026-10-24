@@ -6,9 +6,9 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    app.setApplicationName(QStringLiteral("Fuzzy"));
+    app.setApplicationName(QStringLiteral("FuzzyCloud"));
     app.setApplicationVersion(fuzzy::core::version());
-    app.setOrganizationName(QStringLiteral("Fuzzy"));
+    app.setOrganizationName(QStringLiteral("FuzzyCloud"));
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({{QStringLiteral("appVersion"), fuzzy::core::version()}});

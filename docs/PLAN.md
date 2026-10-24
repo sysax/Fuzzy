@@ -1,4 +1,4 @@
-# Plan de desarrollo — Fuzzy (Turso + portal por cliente)
+# Plan de desarrollo — FuzzyCloud (Turso + portal por cliente)
 
 **Estado:** adoptado el 2026-10-23. Sustituye a los planes anteriores de este repositorio.
 **Protocolo vinculante:** [`flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md`](./flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md), modificado por la [Enmienda 1](./enmienda-01-portal-por-cliente.md) y la [Enmienda 2](./enmienda-02-multiclinica.md).
@@ -9,7 +9,7 @@
 
 ## 0. Alcance
 
-Fuzzy es el sistema de gestión de una clínica veterinaria: escritorio para el personal, móvil para el dueño de la mascota, sincronización con Turso y funcionamiento sin red.
+FuzzyCloud es el sistema de gestión de una clínica veterinaria: escritorio para el personal, móvil para el dueño de la mascota, sincronización con Turso y funcionamiento sin red.
 
 Este plan fija **cómo** se construye. El alcance funcional se copia de `FuzzyApp` (fases 0–3 de `FuzzyApp/docs/PLAN.md`) y no se reinventa.
 

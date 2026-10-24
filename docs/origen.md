@@ -1,6 +1,6 @@
 # Origen del código
 
-Fuzzy no nace de cero: reutiliza el dominio y parte de la interfaz de `FuzzyApp`. Este documento fija qué se copia, qué no, y con qué reglas, para que la procedencia no dependa de la memoria de nadie.
+FuzzyCloud no nace de cero: reutiliza el dominio y parte de la interfaz de `FuzzyApp`. Este documento fija qué se copia, qué no, y con qué reglas, para que la procedencia no dependa de la memoria de nadie.
 
 ## Referencia
 

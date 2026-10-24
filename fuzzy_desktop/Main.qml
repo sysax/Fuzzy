@@ -11,11 +11,11 @@ ApplicationWindow {
     minimumWidth: 720
     minimumHeight: 480
     visible: true
-    title: qsTr("Fuzzy")
+    title: qsTr("FuzzyCloud")
 
     Label {
         anchors.centerIn: parent
-        text: qsTr("Fuzzy %1 — fase 0").arg(root.appVersion)
+        text: qsTr("FuzzyCloud %1 — fase 0").arg(root.appVersion)
         font.pixelSize: 20
     }
 }

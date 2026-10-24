@@ -1,4 +1,4 @@
-# Fuzzy
+# FuzzyCloud
 
 Gestión para clínica veterinaria: escritorio para el personal, app para el dueño de la mascota, sincronización con Turso y funcionamiento sin red.
 
