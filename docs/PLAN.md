@@ -1,7 +1,7 @@
 # Plan de desarrollo — Fuzzy (Turso + portal por cliente)
 
 **Estado:** adoptado el 2026-10-23. Sustituye a los planes anteriores de este repositorio.
-**Protocolo vinculante:** [`flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md`](./flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md), modificado por la [Enmienda 1](./enmienda-01-portal-por-cliente.md).
+**Protocolo vinculante:** [`flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md`](./flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md), modificado por la [Enmienda 1](./enmienda-01-portal-por-cliente.md) y la [Enmienda 2](./enmienda-02-multiclinica.md).
 **Origen funcional:** `FuzzyApp` en el commit `f3afa94`, copia selectiva sin historial Git.
 **Diagrama de arquitectura:** [`Turso_Flow.mmd`](./Turso_Flow.mmd).
 
@@ -22,6 +22,8 @@ Este plan fija **cómo** se construye. El alcance funcional se copia de `FuzzyAp
 - Auto-registro de personal ni códigos de invitación/reclamo.
 - Roles dinámicos por clínica.
 - Un panel de administración web.
+- **Identidad global entre clínicas**: no hay base de control, ni cuenta única que abra varias sedes, ni intercambio de tokens entre clínicas (D25, D27).
+- **Varias clínicas en una misma base**: Turso autoriza por base y por tabla, no por fila (D28).
 
 Cada exclusión tiene una razón registrada en las decisiones; volver sobre una exige una enmienda, no un cambio silencioso.
 
@@ -55,6 +57,10 @@ Cada exclusión tiene una razón registrada en las decisiones; volver sobre una 
 | D22 | **Directorio público de clínicas**, publicado por CI desde el repositorio. |
 | D23 | El token del portal es de **larga duración**, cifrado en el teléfono con una clave derivada de la contraseña; la revocación es por rotación o borrado, y la caché local tiene límites documentados. |
 | D24 | El portal es una **proyección con esquema reducido**, no una copia filtrada del esquema completo. |
+| D25 | **Sin identidad global.** Cada clínica emite sus cuentas; una persona en dos clínicas tiene una cuenta por clínica. El correo es único por clínica, no entre clínicas. No hay base de control ni accesos cruzados. |
+| D26 | **Un escritorio, una clínica.** El nodo no cambia de sede ni de credenciales en caliente. La app del dueño mantiene una lista local de portales, uno por clínica, y un selector que solo elige qué portal consultar. |
+| D27 | **Se rechaza la base de control con token público de lectura.** El token de una clínica nunca vive en una tabla, en el binario ni en la memoria de un cliente. |
+| D28 | **Se rechaza la co-tenencia en una sola base.** Un archivo único solo se admite como espacio temporal de importación, con `id_clinica` validado en todas las tablas. |
 
 ---
 
@@ -92,6 +98,8 @@ Cada exclusión tiene una razón registrada en las decisiones; volver sobre una 
 | `fuzzy-clinic-<uuid>` | Clínica | Nodo | Nodo | Todo el dominio de la sede |
 | `fuzzy-inbox-<uuid>` | Clínica | App (`altas:data_add`) | Nodo | Altas de primera visita, sin datos clínicos |
 | `fuzzy-portal-<cuenta>` | Clínica | Nodo + App (comandos) | App + Nodo | Proyección de un solo dueño |
+
+No existe una base que enumere clínicas, personas o accesos. Cada base `fuzzy-clinic-<uuid>` contiene las cuentas de **su** personal y su propio catálogo de roles; la misma persona en dos clínicas son dos filas en dos bases, sin relación entre ellas (D25). El directorio (§5.1) es lo único que lista clínicas, y solo con datos comerciales.
 
 ### 2.2 Tokens y custodia
 
@@ -166,6 +174,18 @@ La matriz exacta se deriva de las 60 políticas RLS de `FuzzyApp` y se congela e
 
 Al iniciar sesión con éxito el desktop guarda `credenciales_cache` (hash PBKDF2, rol, clínica, `perm_ver`, `synced_at`). Sin red verifica contra esa caché y crea una sesión `origen=offline` con gracia de 7 días. Si el refresh de dispositivo está revocado, pasa a solo lectura y pide reautenticación.
 
+### 3.6 Multi-clínica
+
+Una persona puede trabajar en dos clínicas y un dueño puede tener mascotas en dos clínicas. Se resuelve con **identidades y bases separadas**, nunca con una base de control (Enmienda 2).
+
+**Personal.** Cada clínica crea su cuenta; la misma persona tiene una por sede, con la contraseña que fije cada una. El correo es único dentro de la clínica, no entre clínicas. Un usuario pertenece a una sola clínica y no existe tabla de accesos cruzados. El escritorio es el nodo de una clínica por instalación: no hay selector de sede ni intercambio de tokens en caliente; para trabajar en la otra sede se usa el equipo de esa sede.
+
+**Cliente.** Cada clínica crea su propio portal. Un dueño con mascotas en dos clínicas tiene dos portales, dos tokens y dos emparejamientos. La app guarda la lista local de portales y un selector; cada consulta va a un solo portal y se etiqueta con su clínica. Revocar un portal no afecta al otro. La vista consolidada se arma en el teléfono, sin fusionar historiales: cada clínica conserva su registro.
+
+**Lo único global** es `fuzzy-directory`: datos comerciales para elegir clínica. No contiene identidades, correos de clientes ni tokens de clínica.
+
+**Rechazado.** La base `doctorcloud-control` con un token de solo lectura incrustado en el binario, `clinicas.token_acceso` legible por cualquier app, login con `SHA-256` calculado en el cliente y clientes que reciben el token de la clínica. El detalle y los motivos están en la Enmienda 2 §2.
+
 ---
 
 ## 4. Portal del cliente
@@ -220,6 +240,12 @@ Se valida y reencoda en el nodo (máximo 1024 px de lado mayor, 2 MB), se proyec
 
 Rotar el token del portal o borrar la base. La app falla en la siguiente consulta y pide re-emparejar en la clínica. Lo ya descargado no se puede borrar a distancia: la caché está cifrada, caduca a los 30 días y se elimina al cerrar sesión. Se documenta como límite del producto en `docs/limites-cache.md` (Fase 8).
 
+### 4.7 Varios portales en el teléfono
+
+La app mantiene una tabla local `portales_conocidos` (`portal_uuid`, `clinica_uuid`, `nombre`, `url`, token cifrado, `emparejado_at`, `ultima_sync`). Cada portal entra por su propio emparejamiento y se descifra con la contraseña usada en ese acto; no hay canje de tokens entre clínicas.
+
+El selector de clínica solo decide qué portal se consulta. La pestaña de una mascota muestra su clínica; la vista "todas mis mascotas" recorre los portales uno por uno y etiqueta cada fila. Si un portal está revocado o inaccesible, se marca y los demás siguen funcionando. El portal es la unidad de aislamiento: ninguna consulta lleva el `clinica_uuid` de otra base, y toda escritura se valida contra el `clinica_uuid` de `portal_meta` antes de aplicarse.
+
 ---
 
 ## 5. Buzón y directorio
@@ -253,13 +279,13 @@ El buzón es de **un solo sentido** por diseño: con lectura, cualquier cliente 
 |---|---|---|---|
 | **0 — Fundaciones** | S | Toolchain fijado (`turso`, `atlas`, `sqlite3`, Qt 6.11.2), esqueleto CMake, `.gitignore` (`*.db*`, `*.dump`, `.env*`, `secrets/`), `db/atlas.hcl`, `0001_init`, `tools/db-rebuild.sh`, `tools/check.sh`, CI esqueleto, `docs/origen.md`, `docs/matriz-autorizacion.md` | Rebuild desde cero + `atlas migrate validate` + CI verde |
 | **1 — Esquema** | L | Cuatro esquemas: clínica, portal, buzón, directorio. `portales`, `mascota_fotos`, `adjuntos`, `citas.origen`, `solicitudes_cita`, `portal_meta`. Runner de migraciones. Suite de esquema sobre los cuatro | Los cuatro migran desde cero; ninguna tabla sincronizable sin `uuid` y timestamps; el portal no contiene ninguna tabla interna |
-| **2 — Turso + CI/CD** | M | `tools/provision-clinic.sh` (cuenta, grupo, bases, tokens), `atlas.hcl` remoto, CI (`schema`, `qt`), `tools/publish-directory.sh`, `docs/entornos.md` | Una clínica de staging se crea con un comando; migraciones aplicadas; directorio publicado; cero secretos en Git |
+| **2 — Turso + CI/CD** | M | `tools/provision-clinic.sh` (cuenta, grupo, bases, tokens), `atlas.hcl` remoto, CI (`schema`, `qt`), `tools/publish-directory.sh`, `docs/entornos.md` | Dos clínicas de staging se crean con un comando; migraciones aplicadas; no existe base de control; directorio publicado; cero secretos en Git |
 | **3 — `fuzzy_core`** | XL | `IQueryExecutor` (`Sqlite`, `TursoHttp`), DAOs, read models, servicios, `Politicas`, auth local (PBKDF2, bootstrap, temporal, caché offline), `CryptoBox`, `FileStore` | `ctest` verde; matriz de permisos con snapshot; el core no hace red salvo por los ejecutores |
-| **4 — Portales, emparejamiento y buzón** | L | Crear base, aplicar esquema, emitir token, QR con huella, consumir el buzón, confirmar primera visita, rotar y borrar | El token de un portal no abre la base de la clínica ni otro portal; fila del buzón consumida una sola vez; revocación deniega; borrado elimina la base |
+| **4 — Portales, emparejamiento y buzón** | L | Crear base, aplicar esquema, emitir token, QR con huella, consumir el buzón, confirmar primera visita, rotar y borrar. Un emparejamiento por portal | El token de un portal no abre la base de la clínica ni otro portal; un dueño con dos portales no cruza datos entre ellos; fila del buzón consumida una sola vez; revocación deniega; borrado elimina la base |
 | **5 — Sync y proyección** | XL | **5A** clínica ↔ Turso: outbox, change log, LWW, tombstones, idempotencia. **5B** proyector y recolector, migración perezosa de portales | Dos nodos convergen; con un fixture de 3 clientes, cada portal **no contiene ningún `uuid` ajeno** (el test rompe el build); ida y vuelta de una solicitud; lote interrumpido recuperable |
 | **6 — Imágenes** | S | Foto de mascota (validación, reencodado, límites, reemplazo) y adjuntos clínicos que nunca salen del nodo | Reemplazo sin residuo; >2 MB rechazado; test que verifica que ningún binario clínico aparece en Turso |
 | **7 — Desktop, paridad Fase 1** | L | `AccessView` con tres estados, `BootstrapView`, asistente de alta de clínica, shell/panel, agenda, pacientes/historial, vínculos, inventario, facturación, Ajustes/Equipo | 15 baselines + `qmllint` + pruebas de controladores |
-| **8 — Mobile, paridad Fase 2** | XL | Directorio, buzón, registro local, importación al emparejar, portal directo, historial, agendar, mis citas, caché cifrada, modo avión | Flujo completo offline → sync; conflicto y duplicado resueltos; ningún token de la clínica en el binario |
+| **8 — Mobile, paridad Fase 2** | XL | Directorio, buzón, registro local, importación al emparejar, portal directo, historial, agendar, mis citas, lista de portales con selector, caché cifrada, modo avión | Flujo completo offline → sync; dos portales de la misma persona aislados; conflicto y duplicado resueltos; ningún token de la clínica en el binario |
 | **9 — Flujo clínico, paridad Fase 3** | XL | Recepción/triage, consulta/recetas/cargos, catálogos, laboratorio, hospitalización/cirugía, estética, caja/inventario, QA de staging | Seis flujos de punta a punta; matriz por rol/clínica; smoke con móvil real |
 | **10 — Producción y runbooks** | M | Alta de clínica en producción, environment protegido, backup, runbook del máster y del portal, CLI `fuzzy-admin`, simulacro de reversión | Despliegue reversible; runbook ejecutado en staging; cero secretos en Git o en binarios |
 
@@ -273,7 +299,8 @@ Cada subfase es una rama `feature/*` y un PR. Las fases 3 y 4 pueden solaparse; 
 |---|---|
 | `tests/schema` | Los cuatro esquemas desde cero en SQLite en memoria; constraints, FKs, vistas, triggers |
 | `fuzzy_core/tests` | Dominio, DAOs, auth local, PBKDF2, `CryptoBox`, matriz de permisos, caché offline |
-| `tests/portal` | **Aislamiento**: proyección desde un fixture de 3 clientes y ausencia de `uuid` ajenos |
+| `tests/portal` | **Aislamiento**: proyección desde un fixture de 3 clientes y ausencia de `uuid` ajenos; una persona con dos portales no cruza filas entre ellos |
+| `tests/multiclínica` | Credenciales de la sede A rechazadas en la sede B; el portal de A no conoce la URL ni el token de B; el directorio no contiene identidades ni tokens de clínica |
 | `tests/inbox` | Validación de filas, idempotencia, límites de tamaño y consumo único |
 | `tests/tokens` | Un token de portal no lee la clínica ni otro portal; no borra; caducidad |
 | `tests/contract` | Portal con esquema `N` contra app `N-1` y viceversa |
@@ -295,7 +322,9 @@ CI: `schema` (Atlas + SQLite efímero + seed), `qt-build` (Qt 6.11.2 + `qmllint`
 | Sondeo de N portales | Sondeo directo en el MVP; señal en el buzón si N > 200 |
 | Bug de proyección que filtre filas | Test de aislamiento por fixture + esquema que no contiene datos ajenos |
 | Sin push | La app refresca al abrir; se documenta en la interfaz |
-| Directorio público | Solo datos comerciales; token de inserción con permisos mínimos |
+| Directorio público | Solo datos comerciales; token de inserción con permisos mínimos; sin identidades ni tokens de clínica |
+| Misma persona en dos clínicas | Dos cuentas, dos bases, sin relación. El riesgo residual es la reutilización de contraseña y la confusión de contexto; se mitiga con el nombre de la sede visible en la barra y en cada comprobante, y con lista de portales etiquetada en el móvil |
+| Cliente que no distingue dos portales | La app etiqueta cada mascota y cada cita con su clínica; la vista consolidada es local y nunca fusiona historiales |
 | Nodo apagado | Los portales siguen legibles en Turso; el buzón y la cola del móvil esperan |
 
 ---
@@ -315,6 +344,34 @@ No bloquea el diseño, pero decide detalles de implementación:
 
 - [`flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md`](./flujo-de-trabajo-profesional-con-turso-cli-git-pruebas-locales-y-despliegue.md)
 - [`enmienda-01-portal-por-cliente.md`](./enmienda-01-portal-por-cliente.md)
+- [`enmienda-02-multiclinica.md`](./enmienda-02-multiclinica.md)
+- `casos_uso_multitenant_turso.md` (documento revisado; no forma parte del diseño: el mecanismo de base de control se rechaza y los casos se conservan)
 - [`Turso_Flow.mmd`](./Turso_Flow.mmd)
 - `FuzzyApp/docs/PLAN.md` (fases funcionales 0–3)
 - `FuzzyApp/docs/STAGING.md` (modelo de aprovisionamiento que se reemplaza)
+
+---
+
+## Anexo A — Volcado `data (1).db` (Turso heredado)
+
+Analizado el 2026-10-23. Solo estructura y conteos; no se copiaron datos personales.
+
+| Hecho | Valor |
+|---|---|
+| Integridad | `PRAGMA integrity_check` = `ok` |
+| Tablas | 17 (16 de dominio + `sqlite_sequence`) |
+| Clínicas | 2 |
+| Usuarios | 2 |
+| `clientes`, `mascotas`, `citas`, `consultas_medicas`, `facturas` | 0 filas |
+| `id_clinica` presente | `citas`, `consultas_medicas`, `facturas`, `signos_vitales`, `vacunas` |
+| `id_clinica` ausente | `usuarios`, `clientes`, `mascotas`, `roles` |
+
+Notas de estructura:
+
+- `clinicas.owner_id` referencia `usuarios(id_usuario)`; `usuarios` no tiene `id_clinica` ni relación con una sede.
+- `usuarios.correo` y `clinicas.nombre_clinica` son `UNIQUE` globales.
+- `mascotas` solo referencia `clientes`, sin `id_clinica`; `citas` referencia `mascotas` y `clinicas`.
+- `facturas` referencia `clientes`, no `mascotas`.
+- No hay tabla de accesos persona–clínica ni rol por sede.
+
+Conclusión: el archivo sirve como **referencia del esquema heredado y para una importación temporal**, no como modelo multi-clínica. Añadir `id_clinica` a `clientes`, `mascotas` y `usuarios` sería el mínimo para aislar filas, pero Turso seguiría sin poder autorizar por fila. La producción usa una base por clínica (D18) y cuentas por clínica (D25). Detalle en la Enmienda 2 §4.

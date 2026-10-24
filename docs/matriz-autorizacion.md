@@ -14,6 +14,8 @@ Derivada de `FuzzyApp@f3afa94`: el enum `Accion` de `fuzzy_core/services/AuthSer
 
 El rol y `clinica_id` salen **siempre** de la sesión, nunca del cuerpo de la petición.
 
+No existe una identidad global (D25). Una persona con cuenta en dos clínicas tiene **dos cuentas**, una por clínica, creadas por el Admin de cada una; el correo es único dentro de la clínica. Un cliente con mascotas en dos clínicas tiene **dos portales**, uno por clínica, y la app los consulta por separado (D26).
+
 ## 2. Acciones del escritorio
 
 Tomadas de `permisosDe(Rol)` en `f3afa94`.
@@ -76,6 +78,8 @@ Acciones nuevas de este plan:
 4. **Ficha ajena.** Un cliente solo accede a la ficha vinculada a su cuenta; el vínculo lo aprueba el personal.
 5. **Borrado lógico.** En el modelo nuevo `D` significa `deleted_at`, no `DELETE`. La excepción es el portal, que se borra por completo al revocar.
 6. **Auditoría.** Alta de usuario, cambio de rol, reset de contraseña, aprobación de vínculo, fusión, desvinculación y bootstrap escriben en `auditoria` dentro de la misma transacción.
+7. **Sin identidad global.** Un usuario pertenece a una sola clínica. La sesión emitida por la clínica A no vale en la B, aunque el correo coincida. No hay tabla de accesos cruzados ni base de control.
+8. **Un portal, una clínica.** Cada portal pertenece a una sola clínica y a una sola cuenta. El selector del móvil elige qué portal consultar; ninguna consulta cruza portales ni reutiliza el token de otro. El `clinica_uuid` de `portal_meta` es la única sede válida para esa base.
 
 ## 5. Discrepancias a resolver en la fase 3
 
