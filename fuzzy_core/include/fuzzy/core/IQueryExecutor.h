@@ -16,6 +16,13 @@ struct ExecResult
     QVariant last_insert_id;
 };
 
+// Fila devuelta por una consulta de lectura.
+struct QueryRow
+{
+    // Valores de la fila; el índice es la posición de la columna.
+    std::vector<QVariant> values;
+};
+
 // Contrato de persistencia del dominio. El dominio (servicios, DAOs, Politicas)
 // depende de esta abstracción y no conoce el transporte: SQLite local
 // (desktop/móvil) o Turso (sync/proyección).
@@ -26,6 +33,10 @@ public:
 
     // Ejecuta una sentencia SQL (dialecto SQLite) con parámetros posicionales (?).
     virtual ExecResult execute(const QString& sql, const std::vector<QVariant>& params = {}) = 0;
+
+    // Ejecuta una sentencia de lectura (SELECT) con parámetros posicionales (?).
+    // Devuelve las filas resultantes.
+    virtual std::vector<QueryRow> query(const QString& sql, const std::vector<QVariant>& params = {}) = 0;
 };
 
 } // namespace fuzzy::core
