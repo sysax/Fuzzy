@@ -3,6 +3,9 @@ add_library(fuzzy_core
     src/SqliteExecutor.cpp
     src/TursoHttpExecutor.cpp
     src/Politicas.cpp
+    src/PortalBaseStore.cpp
+    src/PortalTokenService.cpp
+    src/BuzonService.cpp
 )
 add_library(fuzzy::core ALIAS fuzzy_core)
 

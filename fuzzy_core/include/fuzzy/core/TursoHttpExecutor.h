@@ -5,6 +5,8 @@
 #include <QNetworkAccessManager>
 #include <QString>
 
+class QJsonObject;
+
 namespace fuzzy::core {
 
 // Executor sobre Turso (libsql/HTTP) mediante QNetworkAccessManager. Lo usan
@@ -17,7 +19,13 @@ public:
 
     ExecResult execute(const QString& sql, const std::vector<QVariant>& params = {}) override;
 
+    std::vector<QueryRow> query(const QString& sql, const std::vector<QVariant>& params = {}) override;
+
 private:
+    // Envía una sentencia y devuelve su `result` ya desempaquetado.
+    bool ejecutar(const QString& sql, const std::vector<QVariant>& params,
+                  QJsonObject& resultado);
+
     QString base_url_;
     QString token_;
     QString org_;

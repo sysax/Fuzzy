@@ -4,7 +4,7 @@ Gestión para clínica veterinaria: escritorio para el personal, app para el due
 
 ## Estado
 
-**Fase 0 — fundaciones.** El plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
+**Fase 4 — portales, emparejamiento y buzón, cerrada.** Las fases 0–4 están integradas; la siguiente es la fase 5 (sync y proyección). El plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Toolchain
 

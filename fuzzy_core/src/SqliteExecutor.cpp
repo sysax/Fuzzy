@@ -3,6 +3,7 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QSqlRecord>
 
 namespace fuzzy::core {
 
@@ -33,7 +34,8 @@ ExecResult SqliteExecutor::execute(const QString& sql, const std::vector<QVarian
     } else {
         query.prepare(sql);
         for (int i = 0; i < static_cast<int>(params.size()); ++i) {
-            query.bindValue(i + 1, params[static_cast<size_t>(i)]);
+            // QSqlQuery numera los parámetros posicionales desde 0.
+            query.bindValue(i, params[static_cast<size_t>(i)]);
         }
         if (!query.exec()) {
             return result;
@@ -43,6 +45,43 @@ ExecResult SqliteExecutor::execute(const QString& sql, const std::vector<QVarian
     result.affected = query.numRowsAffected();
     result.last_insert_id = query.lastInsertId();
     return result;
+}
+
+std::vector<QueryRow> SqliteExecutor::query(const QString& sql, const std::vector<QVariant>& params)
+{
+    std::vector<QueryRow> filas;
+
+    QSqlDatabase db = QSqlDatabase::database(connection_name_, true);
+    if (!db.isOpen()) {
+        return filas;
+    }
+
+    QSqlQuery query(db);
+    if (!params.empty()) {
+        query.prepare(sql);
+        for (int i = 0; i < static_cast<int>(params.size()); ++i) {
+            // QSqlQuery numera los parámetros posicionales desde 0.
+            query.bindValue(i, params[static_cast<size_t>(i)]);
+        }
+        if (!query.exec()) {
+            return filas;
+        }
+    } else {
+        if (!query.exec(sql)) {
+            return filas;
+        }
+    }
+
+    while (query.next()) {
+        QueryRow fila;
+        const int columnas = query.record().count();
+        for (int i = 0; i < columnas; ++i) {
+            fila.values.push_back(query.value(i));
+        }
+        filas.push_back(std::move(fila));
+    }
+
+    return filas;
 }
 
 } // namespace fuzzy::core

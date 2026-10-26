@@ -17,6 +17,8 @@ public:
 
     ExecResult execute(const QString& sql, const std::vector<QVariant>& params = {}) override;
 
+    std::vector<QueryRow> query(const QString& sql, const std::vector<QVariant>& params = {}) override;
+
 private:
     QString connection_name_;
     QString database_path_;

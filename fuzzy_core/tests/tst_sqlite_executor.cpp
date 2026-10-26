@@ -2,6 +2,7 @@
 
 #include <QtTest>
 #include <QDir>
+#include <QFile>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QVariant>
@@ -12,6 +13,7 @@ class TstSqliteExecutor : public QObject
 
 private slots:
     void ejecutaSentenciasYReportaAfectadas();
+    void ejecutaYConsultaConParametros();
     void operacionDirectaConQSqlite();
 };
 
@@ -36,6 +38,28 @@ void TstSqliteExecutor::ejecutaSentenciasYReportaAfectadas()
     const fuzzy::core::ExecResult update = executor.execute(
         QStringLiteral("UPDATE fuzzy_test SET valor = 'segundo' WHERE id = 1"));
     QCOMPARE(update.affected, 1LL);
+}
+
+void TstSqliteExecutor::ejecutaYConsultaConParametros()
+{
+    const QString db_path = QDir::tempPath() + QStringLiteral("/fuzzy_params_test.db");
+    QFile::remove(db_path);
+    fuzzy::core::SqliteExecutor executor(QStringLiteral("fuzzy_params"), db_path);
+
+    QCOMPARE(executor.execute(
+                 QStringLiteral("CREATE TABLE params_test (id INTEGER PRIMARY KEY, valor TEXT)")).affected,
+             0LL);
+
+    const fuzzy::core::ExecResult insert = executor.execute(
+        QStringLiteral("INSERT INTO params_test (valor) VALUES (?)"),
+        {QVariant(QStringLiteral("con parámetros"))});
+    QCOMPARE(insert.affected, 1LL);
+
+    const auto filas = executor.query(
+        QStringLiteral("SELECT valor FROM params_test WHERE valor = ?"),
+        {QVariant(QStringLiteral("con parámetros"))});
+    QCOMPARE(static_cast<int>(filas.size()), 1);
+    QCOMPARE(filas.front().values.front().toString(), QStringLiteral("con parámetros"));
 }
 
 void TstSqliteExecutor::operacionDirectaConQSqlite()
