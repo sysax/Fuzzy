@@ -4,7 +4,7 @@ Gestión para clínica veterinaria: escritorio para el personal, app para el due
 
 ## Estado
 
-**Fase 4 — portales, emparejamiento y buzón, cerrada.** Las fases 0–4 están integradas; la siguiente es la fase 5 (sync y proyección). El plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
+**Fase 5 — sync y proyección, cerrada.** Las fases 0–5 están integradas; la siguiente es la fase 6 (imágenes). El motor de sync y la proyección se explican en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Toolchain
 
@@ -72,5 +72,6 @@ tests/            suites transversales (a partir de la fase 1)
 ## Documentos
 
 - [`docs/PLAN.md`](docs/PLAN.md) — plan y decisiones
+- [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md) — outbox, LWW, proyector y recolección
 - [`docs/origen.md`](docs/origen.md) — procedencia del código
 - [`docs/matriz-autorizacion.md`](docs/matriz-autorizacion.md) — roles y permisos

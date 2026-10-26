@@ -189,6 +189,7 @@ ExecResult TursoHttpExecutor::execute(const QString& sql, const std::vector<QVar
         return result;
     }
 
+    result.ok = true;
     result.affected = respuesta.value(QStringLiteral("affected_row_count")).toInteger();
     const QJsonValue ultimo = respuesta.value(QStringLiteral("last_insert_rowid"));
     if (!ultimo.isNull() && !ultimo.isUndefined()) {

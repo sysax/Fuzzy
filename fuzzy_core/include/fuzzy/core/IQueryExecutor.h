@@ -10,6 +10,9 @@ namespace fuzzy::core {
 // Resultado de una ejecución de sentencia SQL.
 struct ExecResult
 {
+    // La sentencia se ejecutó sin error en el transporte. `affected` puede ser
+    // 0 en un UPDATE que no cambió filas o en un ON CONFLICT que no aplicó.
+    bool ok = false;
     // Filas afectadas por la última operación (INSERT/UPDATE/DELETE).
     long long affected = 0;
     // Id de inserción generado (INSERT), si aplica.

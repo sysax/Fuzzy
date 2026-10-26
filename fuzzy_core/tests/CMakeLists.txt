@@ -67,3 +67,25 @@ target_link_libraries(tst_turso_http_executor PRIVATE
 )
 
 add_test(NAME tst_turso_http_executor COMMAND tst_turso_http_executor)
+
+# Suites de la fase 5: aplican el esquema real desde db/migrations.
+function(fuzzy_fase5_test nombre)
+    qt_add_executable(${nombre} ${nombre}.cpp)
+    target_link_libraries(${nombre} PRIVATE
+        fuzzy::core
+        Qt6::Sql
+        Qt6::Test
+    )
+    target_compile_definitions(${nombre} PRIVATE
+        FUZZY_MIGRATIONS_DIR="${CMAKE_SOURCE_DIR}/db/migrations"
+    )
+    add_test(NAME ${nombre} COMMAND ${nombre})
+endfunction()
+
+fuzzy_fase5_test(tst_migration_runner)
+fuzzy_fase5_test(tst_portal_provisioner)
+fuzzy_fase5_test(tst_portal_projector)
+fuzzy_fase5_test(tst_portal_contract)
+fuzzy_fase5_test(tst_buzon_recoleccion)
+fuzzy_fase5_test(tst_solicitud_cita)
+fuzzy_fase5_test(tst_sync_engine)
