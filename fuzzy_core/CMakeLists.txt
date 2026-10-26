@@ -1,13 +1,32 @@
 add_library(fuzzy_core
     src/Version.cpp
+    src/Uuid.cpp
+    src/SqlScript.cpp
+    src/MigrationRunner.cpp
     src/SqliteExecutor.cpp
     src/TursoHttpExecutor.cpp
     src/Politicas.cpp
     src/PortalBaseStore.cpp
     src/PortalTokenService.cpp
+    src/PortalProvisioner.cpp
+    src/PortalProjector.cpp
     src/BuzonService.cpp
+    src/SolicitudCitaService.cpp
+    src/SyncEntities.cpp
+    src/SyncOutbox.cpp
+    src/SyncEngine.cpp
 )
 add_library(fuzzy::core ALIAS fuzzy_core)
+
+# Migraciones del portal incrustadas: el runner las aplica al crear la base
+# del dueño y en la migración perezosa (D14, fase 5B).
+qt_add_resources(fuzzy_core "migraciones"
+    PREFIX "/fuzzy/migrations"
+    BASE "${CMAKE_SOURCE_DIR}/db/migrations"
+    FILES
+        "${CMAKE_SOURCE_DIR}/db/migrations/portal/0001_init.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/portal/0002_portal.sql"
+)
 
 target_include_directories(fuzzy_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

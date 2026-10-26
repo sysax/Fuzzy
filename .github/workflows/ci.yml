@@ -65,3 +65,56 @@ jobs:
 
       - name: qmllint
         run: qmllint fuzzy_desktop/Main.qml
+
+  portal:
+    name: Portal y sync (fase 5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: Migraciones, proyector, buzón, solicitudes y sync
+        run: |
+          ctest --test-dir build --output-on-failure -R "tst_migration_runner|tst_portal_projector|tst_portal_provisioner|tst_buzon_recoleccion|tst_solicitud_cita|tst_sync_engine"
+
+  contract:
+    name: Contrato del portal
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: El portal solo contiene el esquema del dueño
+        run: ctest --test-dir build --output-on-failure -R tst_portal_contract

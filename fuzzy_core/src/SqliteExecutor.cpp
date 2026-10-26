@@ -17,6 +17,20 @@ SqliteExecutor::SqliteExecutor(const QString& connection_name, const QString& da
     db.open();
 }
 
+SqliteExecutor::~SqliteExecutor()
+{
+    if (!QSqlDatabase::contains(connection_name_)) {
+        return;
+    }
+    {
+        QSqlDatabase db = QSqlDatabase::database(connection_name_, false);
+        if (db.isOpen()) {
+            db.close();
+        }
+    }
+    QSqlDatabase::removeDatabase(connection_name_);
+}
+
 ExecResult SqliteExecutor::execute(const QString& sql, const std::vector<QVariant>& params)
 {
     ExecResult result;
@@ -42,6 +56,7 @@ ExecResult SqliteExecutor::execute(const QString& sql, const std::vector<QVarian
         }
     }
 
+    result.ok = true;
     result.affected = query.numRowsAffected();
     result.last_insert_id = query.lastInsertId();
     return result;

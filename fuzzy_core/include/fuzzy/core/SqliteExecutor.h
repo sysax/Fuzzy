@@ -13,7 +13,7 @@ class SqliteExecutor final : public IQueryExecutor
 public:
     SqliteExecutor(const QString& connection_name = QStringLiteral("fuzzy_core"),
                    const QString& database_path = QString());
-    ~SqliteExecutor() override = default;
+    ~SqliteExecutor() override;
 
     ExecResult execute(const QString& sql, const std::vector<QVariant>& params = {}) override;
 
