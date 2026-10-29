@@ -15,8 +15,14 @@ clientes → mascotas → citas / consultas_medicas → recetas → receta_detal
 
 No viajan catálogos (`roles`, `estados_cita`, `tipos_servicio_cita`, …): las
 migraciones los siembran iguales en todos los nodos. Tampoco viajan tokens,
-`portales`, `auditoria` ni las rutas de imágenes. Las imágenes llegan en la
-fase 6 y su binario nunca sale del nodo.
+`portales`, `auditoria` ni las rutas de imágenes.
+
+Desde la fase 6 las dos rutas de imagen están separadas: la foto de la
+mascota vive como BLOB en `mascota_fotos` del portal (la escribe la app y el
+proyector no la toca), mientras que el binario de `mascota_galeria` vive en el
+disco del nodo y nunca entra al change log. Del material clínico solo viaja la
+fila de metadatos de `adjuntos` (nombre, mime, `sha256` y tamaño). El detalle
+está en [`imagenes.md`](./imagenes.md).
 
 Cada entidad se declara en `fuzzy_core/include/fuzzy/core/SyncEntities.h` con
 sus columnas y sus referencias. Una referencia entera (`mascota_id`,
@@ -85,14 +91,17 @@ falta el padre referenciado o el payload no se puede aplicar; el siguiente
 1. Abre la base del dueño y aplica las migraciones pendientes.
 2. Lee `portal_meta` y localiza la cuenta y la ficha en la clínica.
 3. Construye upserts **solo** de las filas de esa ficha: perfil, mascotas,
-   visitas, recetas, líneas de receta, vacunas, pesos y citas.
+   visitas, recetas, líneas de receta, vacunas, pesos, citas y los metadatos de
+   `adjuntos`.
 4. Marca tombstones para lo que ya no existe en la clínica.
 5. Actualiza `portal_meta.proyeccion_version` y `proyectado_at`.
 
 El proyector nunca escribe en `solicitudes_cita` ni en `mascota_fotos`, que son
-las tablas donde escribe la app. Tampoco copia notas internas, auditoría,
-costos, inventario ni usuarios: esas tablas no existen en el esquema del
-portal, y el contrato lo verifica `tst_portal_contract`.
+las tablas donde escribe la app. En `adjuntos` copia solo nombre, mime,
+`sha256` y tamaño: ni el BLOB ni `storage_path` salen del nodo. Tampoco copia
+notas internas, auditoría, costos, inventario ni usuarios: esas tablas no
+existen en el esquema del portal, y el contrato lo verifica
+`tst_portal_contract`.
 
 La migración de un portal es perezosa: `PortalProvisioner::migrar()` (o el
 propio proyector) aplica únicamente las versiones que falten y conserva la
@@ -139,6 +148,9 @@ Las suites que sostienen el gate son:
 | `tst_buzon_recoleccion` | recolección idempotente, aislamiento por clínica y filas inválidas |
 | `tst_portal_provisioner` | base, esquema, QR, huella y migración perezosa |
 | `tst_migration_runner` | runner embebido y del directorio, idempotente |
+| `tst_file_store` | escritura atómica, permisos y rechazo de rutas inseguras |
+| `tst_mascota_foto` | reencodado, límite de 2 MB y reemplazo sin residuo |
+| `tst_adjuntos_clinicos` | metadatos en el portal y ausencia del binario clínico en Turso |
 
 `tst_portal_projector` falla el build si un uuid de otro dueño aparece en un
 portal. El escaneo cubre todas las tablas y todos los valores de texto, no solo
@@ -151,6 +163,8 @@ las columnas que el proyector conoce.
   escritorio (fases 7–9).
 - No hay resolución automática de conflictos de negocio (dos citas en la misma
   franja): LWW es la red de seguridad y la agenda valida antes de aceptar.
-- El binario de una imagen no viaja por sync ni por portal (fase 6).
+- El binario de la galería clínica no viaja por sync ni por portal; solo sus
+  metadatos. La foto de perfil es la excepción deliberada: vive como BLOB en
+  el portal del dueño (fase 6, [`imagenes.md`](./imagenes.md)).
 - El nodo remoto debe tener aplicada la migración `0004_sync.sql`; el motor
   devuelve un error explícito si falta `sync_change_log`.

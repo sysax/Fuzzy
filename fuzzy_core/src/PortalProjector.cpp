@@ -349,6 +349,34 @@ ResultadoProyeccion PortalProjector::proyectar(const QString& portal_uuid)
         ++resultado.filas;
     }
 
+    // ── Adjuntos: solo metadatos ─────────────────────────────
+    // El binario de la galería clínica vive en el disco del nodo. Al portal
+    // viajan nombre, mime, sha256 y tamaño; ni el BLOB ni `storage_path`.
+    const auto adjuntos = clinica_.query(
+        QStringLiteral("SELECT g.uuid, m.uuid, cm.uuid, g.titulo, g.mime, g.sha256, "
+                       "g.tamano, g.created_at, g.updated_at, g.deleted_at "
+                       "FROM mascota_galeria g "
+                       "JOIN mascotas m ON m.id = g.mascota_id "
+                       "LEFT JOIN consultas_medicas cm ON cm.id = g.visita_id "
+                       "WHERE m.cliente_id = ? "
+                       "AND g.sha256 IS NOT NULL AND g.tamano > 0"),
+        {QVariant::fromValue(cliente_id)});
+    QStringList adjuntoUuids;
+    for (const QueryRow& fila : adjuntos) {
+        const auto& v = fila.values;
+        adjuntoUuids.append(v.at(0).toString());
+        ok = ok && upsert(*portal, QStringLiteral("adjuntos"),
+                          QStringList{QStringLiteral("uuid"), QStringLiteral("mascota_uuid"),
+                                      QStringLiteral("visita_uuid"), QStringLiteral("nombre"),
+                                      QStringLiteral("mime"), QStringLiteral("sha256"),
+                                      QStringLiteral("tamano"), QStringLiteral("created_at"),
+                                      QStringLiteral("updated_at"), QStringLiteral("deleted_at")},
+                          {v.at(0), v.at(1), v.at(2), v.at(3), v.at(4), v.at(5),
+                           v.at(6), v.at(7), v.at(8), v.at(9)},
+                          QStringLiteral("uuid"));
+        ++resultado.filas;
+    }
+
     // ── Tombstones de lo que ya no está en la clínica ────────
     const qint64 ahora = QDateTime::currentMSecsSinceEpoch();
     ok = ok && marcarAusentes(*portal, QStringLiteral("mascotas"), mascotaUuids, ahora);
@@ -358,6 +386,7 @@ ResultadoProyeccion PortalProjector::proyectar(const QString& portal_uuid)
     ok = ok && marcarAusentes(*portal, QStringLiteral("vacunas"), vacunaUuids, ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("pesos"), pesoUuids, ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("citas"), citaUuids, ahora);
+    ok = ok && marcarAusentes(*portal, QStringLiteral("adjuntos"), adjuntoUuids, ahora);
 
     if (!ok) {
         portal->execute(QStringLiteral("ROLLBACK"));

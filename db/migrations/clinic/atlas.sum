@@ -1,5 +1,6 @@
-h1:00A54gnzKjReAaVxD0QMUAznwIMkUKSzd7D5v8fvks0=
+h1:vHDg0MrJpg+PzZbcf4LrmHORoJ/VI3CSuTnD/wbCb9I=
 0001_init.sql h1:a12yWPNQGocsoATKOvOWGk4ZdBlwEQX7f+CeszrGUrM=
 0002_dominio.sql h1:U3dEx1F1FV0SAKr8uPhawcoy742vkn63ACnnwn3SrG0=
 0003_portal_token.sql h1:zYFp3fTTFKhrHSKkWPy4mX4ZSDUUFcZKcTjN1y9qm3c=
 0004_sync.sql h1:7tg9RIUNoCCfhR6vzOjGSxSL3rn+b6f1hw6CfIvkMjM=
+0005_imagenes.sql h1:qINJnJOKZPbHz2jDGqIMHL7S4PlDqKlSct+FIgnSP6g=

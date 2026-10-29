@@ -68,8 +68,8 @@ target_link_libraries(tst_turso_http_executor PRIVATE
 
 add_test(NAME tst_turso_http_executor COMMAND tst_turso_http_executor)
 
-# Suites de la fase 5: aplican el esquema real desde db/migrations.
-function(fuzzy_fase5_test nombre)
+# Suites que aplican el esquema real desde db/migrations.
+function(fuzzy_esquema_test nombre)
     qt_add_executable(${nombre} ${nombre}.cpp)
     target_link_libraries(${nombre} PRIVATE
         fuzzy::core
@@ -82,10 +82,18 @@ function(fuzzy_fase5_test nombre)
     add_test(NAME ${nombre} COMMAND ${nombre})
 endfunction()
 
-fuzzy_fase5_test(tst_migration_runner)
-fuzzy_fase5_test(tst_portal_provisioner)
-fuzzy_fase5_test(tst_portal_projector)
-fuzzy_fase5_test(tst_portal_contract)
-fuzzy_fase5_test(tst_buzon_recoleccion)
-fuzzy_fase5_test(tst_solicitud_cita)
-fuzzy_fase5_test(tst_sync_engine)
+fuzzy_esquema_test(tst_migration_runner)
+fuzzy_esquema_test(tst_portal_provisioner)
+fuzzy_esquema_test(tst_portal_projector)
+fuzzy_esquema_test(tst_portal_contract)
+fuzzy_esquema_test(tst_buzon_recoleccion)
+fuzzy_esquema_test(tst_solicitud_cita)
+fuzzy_esquema_test(tst_sync_engine)
+
+# Fase 6: imágenes. FileStore no necesita esquema; las otras dos sí.
+qt_add_executable(tst_file_store tst_file_store.cpp)
+target_link_libraries(tst_file_store PRIVATE fuzzy::core Qt6::Test)
+add_test(NAME tst_file_store COMMAND tst_file_store)
+
+fuzzy_esquema_test(tst_mascota_foto)
+fuzzy_esquema_test(tst_adjuntos_clinicos)
