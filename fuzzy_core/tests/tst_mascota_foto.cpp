@@ -185,5 +185,5 @@ void TstMascotaFoto::exigeMascotaDelPortal()
     QCOMPARE(contar(portal, QStringLiteral("mascota_fotos")), 0LL);
 }
 
-QTEST_MAIN(TstMascotaFoto)
+QTEST_GUILESS_MAIN(TstMascotaFoto)
 #include "tst_mascota_foto.moc"

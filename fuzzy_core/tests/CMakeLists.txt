@@ -97,3 +97,8 @@ add_test(NAME tst_file_store COMMAND tst_file_store)
 
 fuzzy_esquema_test(tst_mascota_foto)
 fuzzy_esquema_test(tst_adjuntos_clinicos)
+
+# Los tests de imagen usan QImage, pero no necesitan plataforma gráfica: su
+# main es QTEST_GUILESS_MAIN (QCoreApplication), así corren en CI sin display.
+target_link_libraries(tst_mascota_foto PRIVATE Qt6::Gui)
+target_link_libraries(tst_adjuntos_clinicos PRIVATE Qt6::Gui)

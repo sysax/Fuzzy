@@ -401,5 +401,5 @@ void TstAdjuntosClinicos::rechazaFormatosYLimites()
     QVERIFY(!tituloVacio.ok);
 }
 
-QTEST_MAIN(TstAdjuntosClinicos)
+QTEST_GUILESS_MAIN(TstAdjuntosClinicos)
 #include "tst_adjuntos_clinicos.moc"
