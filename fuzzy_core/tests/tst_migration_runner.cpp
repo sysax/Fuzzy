@@ -57,7 +57,7 @@ void TstMigrationRunner::esquemaClinicoCompleto()
     const MigrationRunner runner(migracionesDir() + QStringLiteral("/clinic"));
     QVERIFY2(runner.valido(), "no se encontraron las migraciones de la clínica");
     QVERIFY(runner.aplicar(executor));
-    QCOMPARE(runner.versionActual(), QStringLiteral("0004"));
+    QCOMPARE(runner.versionActual(), QStringLiteral("0005"));
 
     QVERIFY(existeTabla(executor, QStringLiteral("sync_outbox")));
     QVERIFY(existeTabla(executor, QStringLiteral("sync_change_log")));
@@ -66,12 +66,25 @@ void TstMigrationRunner::esquemaClinicoCompleto()
     QVERIFY(existeColumna(executor, QStringLiteral("sync_meta"),
                           QStringLiteral("ultimo_pull_id")));
 
+    // La fase 6 dejó metadatos verificables en la galería clínica; el
+    // binario sigue viviendo fuera de la base.
+    QVERIFY(existeColumna(executor, QStringLiteral("mascota_galeria"),
+                          QStringLiteral("mime")));
+    QVERIFY(existeColumna(executor, QStringLiteral("mascota_galeria"),
+                          QStringLiteral("sha256")));
+    QVERIFY(existeColumna(executor, QStringLiteral("mascota_galeria"),
+                          QStringLiteral("tamano")));
+    QVERIFY(existeColumna(executor, QStringLiteral("mascota_galeria"),
+                          QStringLiteral("visita_id")));
+    QVERIFY(!existeColumna(executor, QStringLiteral("mascota_galeria"),
+                           QStringLiteral("foto")));
+
     // Las migraciones sembraron catálogos estables para resolver referencias.
     QCOMPARE(contar(executor, QStringLiteral("estados_cita")), 6LL);
     QCOMPARE(contar(executor, QStringLiteral("tipos_servicio_cita")), 3LL);
 
     QVERIFY(runner.aplicar(executor));
-    QCOMPARE(contar(executor, QStringLiteral("_fuzzy_migraciones")), 4LL);
+    QCOMPARE(contar(executor, QStringLiteral("_fuzzy_migraciones")), 5LL);
 }
 
 QTEST_MAIN(TstMigrationRunner)
