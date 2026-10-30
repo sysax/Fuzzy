@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 namespace fuzzy::desktop {
 
@@ -24,6 +25,7 @@ class SessionController : public QObject
     Q_PROPERTY(QString rol READ rol NOTIFY sesionCambiada)
     Q_PROPERTY(QString usuarioUuid READ usuarioUuid NOTIFY sesionCambiada)
     Q_PROPERTY(QString nombreClinica READ nombreClinica NOTIFY sesionCambiada)
+    Q_PROPERTY(QStringList permisos READ permisos NOTIFY sesionCambiada)
     Q_PROPERTY(QString error READ error NOTIFY errorCambiado)
     Q_PROPERTY(QString mensaje READ mensaje NOTIFY mensajeCambiado)
 
@@ -40,6 +42,11 @@ public:
     QString nombreClinica() const { return nombreClinica_; }
     QString error() const { return error_; }
     QString mensaje() const { return mensaje_; }
+
+    // Nombres de los permisos del rol actual. Es una propiedad con NOTIFY para
+    // que las vistas puedan enlazarla: `puede()` es una invocación y un binding
+    // que solo la llama no se reevalúa al iniciar o cerrar sesión.
+    QStringList permisos() const;
 
     Q_INVOKABLE void bootstrap(const QString& nombreClinica, const QString& ciudad,
                                const QString& nombreAdmin, const QString& correo,
@@ -62,8 +69,6 @@ signals:
 private:
     void aplicar(const fuzzy::core::ResultadoAuth& resultado);
     void refrescarClinica();
-    static fuzzy::core::Permiso permisoDesdeNombre(const QString& nombre,
-                                                   bool* encontrado);
 
     fuzzy::core::AuthService& auth_;
     fuzzy::core::Sesion sesion_;
