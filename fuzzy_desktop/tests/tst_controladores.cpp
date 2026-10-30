@@ -201,6 +201,8 @@ void ControladoresTest::bootstrapYLogin()
     // El controlador de sesión adapta el mismo resultado a QML.
     fuzzy::desktop::SessionController controlador(*base.auth);
     QVERIFY(controlador.hayInstalacion());
+    // Antes de entrar no hay permisos: es el estado con el que arranca la app.
+    QVERIFY(controlador.permisos().isEmpty());
     controlador.iniciarSesion(QStringLiteral("admin@pruebas.test"),
                               QStringLiteral("Password123!"));
     QVERIFY(controlador.autenticado());
@@ -208,9 +210,12 @@ void ControladoresTest::bootstrapYLogin()
     QCOMPARE(controlador.rol(), QStringLiteral("Admin"));
     QCOMPARE(controlador.usuarioUuid(), base.adminUuid);
     QVERIFY(controlador.puede(QStringLiteral("GestionarUsuarios")));
+    QVERIFY(controlador.permisos().contains(QStringLiteral("VerPanel")));
+    QVERIFY(controlador.permisos().contains(QStringLiteral("AprobarVinculo")));
 
     controlador.cerrarSesion();
     QVERIFY(!controlador.autenticado());
+    QVERIFY(controlador.permisos().isEmpty());
 }
 
 void ControladoresTest::reglasDelEquipo()

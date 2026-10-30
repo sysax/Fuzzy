@@ -49,6 +49,13 @@ rol. Cada entrada declara el permiso que necesita (`VerPanel`,
 si se muestra. El contenido es un `StackLayout` con una página por módulo y
 cada página consulta su controlador al cargarse.
 
+Las entradas se habilitan contra `sesion.permisos`, una propiedad con NOTIFY
+que devuelve los nombres de permiso del rol actual. No se usa `puede()` en un
+enlace: es una invocación sin señal, así que al arrancar sin sesión el enlace
+se evaluaba una sola vez con el rol `Desconocido` y el sidebar quedaba muerto
+después de entrar. `puede()` sigue disponible para usos imperativos y se
+implementa sobre la misma lista.
+
 ## 4. Módulos
 
 | Vista | Controlador | Alcance |
@@ -122,6 +129,12 @@ QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
 Las capturas de la última ejecución quedan en
 `$FUZZY_VISUAL_ARTIFACT_DIR` (por defecto, el directorio temporal del sistema),
 lo que permite revisar una regresión sin volver a ejecutar la suite.
+
+El mismo binario tiene un caso de comportamiento, `navegacionPorClicks`, que no
+compara imágenes: carga la app **sin sesión** (el orden real de arranque),
+entra con un usuario y hace clic en las entradas del sidebar. Reproduce el
+fallo del enlace de permisos congelado y verifica que el `StackLayout` cambia
+de página.
 
 ## 6. Gate
 

@@ -33,6 +33,7 @@
 #include <QTemporaryDir>
 #include <QtTest>
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -626,6 +627,7 @@ enum class Escenario
     Login,
     CambioPassword,
     Demo,
+    DemoSinSesion,
 };
 
 struct DatosDemo;
@@ -761,6 +763,7 @@ private slots:
     void accesoBootstrap();
     void accesoCambioPassword();
     void modulos();
+    void navegacionPorClicks();
 
 private:
     bool comparar(const QImage& image, const QString& nombre);
@@ -927,6 +930,76 @@ void VisualTest::modulos()
     ajustes->setProperty("tab", QStringLiteral("equipo"));
     esperar();
     QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("ajustes-equipo")));
+}
+
+// Centros de las entradas de la barra lateral, de arriba abajo. Los delegados
+// de un Repeater no cuelgan del árbol QObject (solo del árbol visual), así que
+// se recorren los items hijos y se filtran por su geometría en el sidebar.
+void recolectarAreasDeRaton(QQuickItem* raiz, QList<QQuickItem*>* areas)
+{
+    for (auto* hijo : raiz->childItems()) {
+        if (QString::fromLatin1(hijo->metaObject()->className())
+                .contains(QStringLiteral("MouseArea"))) {
+            areas->append(hijo);
+        }
+        recolectarAreasDeRaton(hijo, areas);
+    }
+}
+
+QList<QPoint> filasDelSidebar(QQuickWindow* ventana)
+{
+    QList<QQuickItem*> areas;
+    recolectarAreasDeRaton(ventana->contentItem(), &areas);
+
+    QList<QQuickItem*> filas;
+    for (auto* area : areas) {
+        const QPointF origen = area->mapToScene(QPointF(0, 0));
+        if (origen.x() >= 232 || !qFuzzyCompare(area->height(), 42.0))
+            continue;
+        filas.append(area);
+    }
+    std::sort(filas.begin(), filas.end(), [](QQuickItem* a, QQuickItem* b) {
+        return a->mapToScene(QPointF(0, 0)).y() < b->mapToScene(QPointF(0, 0)).y();
+    });
+
+    QList<QPoint> centros;
+    for (auto* fila : filas) {
+        const QPointF centro = fila->mapToScene(
+            QPointF(fila->width() / 2, fila->height() / 2));
+        centros.append(centro.toPoint());
+    }
+    return centros;
+}
+
+void VisualTest::navegacionPorClicks()
+{
+    // El montaje real: la app carga sin sesión y el usuario entra después. Es
+    // el orden que destapaba el sidebar muerto, porque el enlace a permisos se
+    // evaluaba una sola vez con el rol Desconocido.
+    Montaje montaje(Escenario::DemoSinSesion);
+    QQuickWindow* ventana = montaje.ventana();
+    auto* shell = ventana->findChild<QQuickItem*>(QStringLiteral("shellView"));
+    QVERIFY(shell);
+    QVERIFY(!montaje.sesion()->autenticado());
+    QCOMPARE(shell->property("seleccion").toInt(), 0);
+
+    montaje.sesion()->iniciarSesion(QStringLiteral("elena@aurora.test"),
+                                    QStringLiteral("Aurora2026!"));
+    QVERIFY(montaje.sesion()->autenticado());
+    esperar(700);
+
+    const QList<QPoint> filas = filasDelSidebar(ventana);
+    QCOMPARE(filas.size(), 9);
+
+    // Vínculos es la octava entrada; el clic debe mover la selección.
+    QTest::mouseClick(ventana, Qt::LeftButton, Qt::NoModifier, filas.at(7));
+    esperar(500);
+    QCOMPARE(shell->property("seleccion").toInt(), 7);
+
+    // Y volver a otra entrada.
+    QTest::mouseClick(ventana, Qt::LeftButton, Qt::NoModifier, filas.at(2));
+    esperar(500);
+    QCOMPARE(shell->property("seleccion").toInt(), 2);
 }
 
 int main(int argc, char** argv)

@@ -101,11 +101,17 @@ Item {
                         required property int index
                         required property var modelData
 
+                        // Se lee `permisos` (propiedad con NOTIFY) y no
+                        // `puede()`: al arrancar sin sesión el enlace quedaría
+                        // congelado en «sin permiso» y el sidebar no
+                        // respondería a los clics tras iniciar sesión.
+                        readonly property bool permitido: sesion.permisos.indexOf(modelData.permiso) !== -1
+
                         Layout.fillWidth: true
                         Layout.preferredHeight: 42
                         radius: 10
                         color: root.seleccion === index ? "#FFFFFF" : "transparent"
-                        opacity: sesion.puede(modelData.permiso) ? 1 : 0.35
+                        opacity: permitido ? 1 : 0.35
 
                         RowLayout {
                             anchors.fill: parent
@@ -132,7 +138,7 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            enabled: sesion.puede(modelData.permiso)
+                            enabled: parent.permitido
                             onClicked: root.irA(index)
                         }
                     }

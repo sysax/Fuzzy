@@ -138,31 +138,25 @@ void SessionController::limpiarMensajes()
 
 bool SessionController::puede(const QString& permiso) const
 {
+    return permisos().contains(permiso);
+}
+
+QStringList SessionController::permisos() const
+{
+    QStringList nombres;
     if (!autenticado()) {
-        return false;
-    }
-    bool encontrado = false;
-    const Permiso valor = permisoDesdeNombre(permiso, &encontrado);
-    if (!encontrado) {
-        return false;
+        return nombres;
     }
     ContextoPermiso contexto;
     contexto.recurso = QStringLiteral("ui");
-    contexto.accion = accionPara(valor);
     contexto.clinica_id = sesion_.clinica_id;
-    return politicas_.exigir(sesion_, valor, contexto);
-}
-
-Permiso SessionController::permisoDesdeNombre(const QString& nombre, bool* encontrado)
-{
     for (const auto& entrada : kPermisos) {
-        if (nombre == QLatin1String(entrada.nombre)) {
-            *encontrado = true;
-            return entrada.permiso;
+        contexto.accion = accionPara(entrada.permiso);
+        if (politicas_.exigir(sesion_, entrada.permiso, contexto)) {
+            nombres.append(QString::fromLatin1(entrada.nombre));
         }
     }
-    *encontrado = false;
-    return Permiso::VerPanel;
+    return nombres;
 }
 
 } // namespace fuzzy::desktop
