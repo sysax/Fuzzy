@@ -26,6 +26,9 @@ public:
     // Migraciones del portal, incrustadas en el binario como recurso Qt.
     static MigrationRunner portal();
 
+    // Migraciones de la clínica, para el nodo de escritorio.
+    static MigrationRunner clinic();
+
     bool valido() const { return !migraciones_.isEmpty(); }
     QString directorio() const { return directorio_; }
     QString versionActual() const;

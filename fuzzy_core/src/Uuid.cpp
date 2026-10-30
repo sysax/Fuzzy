@@ -13,4 +13,9 @@ QString uuidDeterminista(const QString& semilla)
     return QUuid::createUuidV5(espacio, semilla).toString(QUuid::WithoutBraces);
 }
 
+QString uuidNuevo()
+{
+    return QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
+
 } // namespace fuzzy::core

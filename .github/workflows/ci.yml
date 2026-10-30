@@ -64,7 +64,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
       - name: qmllint
-        run: qmllint fuzzy_desktop/Main.qml
+        run: qmllint -I "$QT_ROOT_DIR/qml" fuzzy_desktop/qml/*.qml
 
   portal:
     name: Portal y sync (fase 5)
@@ -119,6 +119,36 @@ jobs:
       - name: Fotos, adjuntos y ausencia de binarios en Turso
         run: |
           ctest --test-dir build --output-on-failure -R "tst_file_store|tst_mascota_foto|tst_adjuntos_clinicos"
+
+  desktop:
+    name: Escritorio (fase 7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: Controladores y baselines visuales
+        run: |
+          ctest --test-dir build --output-on-failure -R "tst_controladores|tst_visual"
+
+      - name: qmllint de todas las vistas
+        run: qmllint -I "$QT_ROOT_DIR/qml" fuzzy_desktop/qml/*.qml
 
   contract:
     name: Contrato del portal

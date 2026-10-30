@@ -304,7 +304,8 @@ Cada subfase es una rama `feature/*` y un PR. Las fases 3 y 4 pueden solaparse; 
 | `tests/inbox` | Validación de filas, idempotencia, límites de tamaño y consumo único |
 | `tests/tokens` | Un token de portal no lee la clínica ni otro portal; no borra; caducidad |
 | `tests/contract` | Portal con esquema `N` contra app `N-1` y viceversa |
-| `fuzzy_desktop/tests/visual` | Baselines con DejaVu empaquetada |
+| `fuzzy_desktop/tests` | Controladores de escritorio (auth, agenda, clínica, caja, portal) |
+| `fuzzy_desktop/tests/visual` | 15 baselines con DejaVu empaquetada y fecha fija |
 | `fuzzy_mobile/tests` | Citas, offline, conflictos, emparejamiento, caché |
 
 CI: `schema` (Atlas + SQLite efímero + seed), `qt-build` (Qt 6.11.2 + `qmllint` + `ctest`), `portal` (proyección y aislamiento), `contract`. El despliegue a producción es un runbook por clínica; solo el esquema de Turso y el directorio se automatizan.

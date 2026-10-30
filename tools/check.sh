@@ -41,6 +41,8 @@ cmake --build "$ROOT/build"
 ctest --test-dir "$ROOT/build" --output-on-failure
 
 printf '== qml ==\n'
-"$QT_PREFIX/bin/qmllint" fuzzy_desktop/Main.qml
+# Todo el árbol QML, no solo la raíz: las vistas de la fase 7 viven en
+# fuzzy_desktop/qml/ y un error de tipos ahí no lo ve el lint de Main.qml.
+"$QT_PREFIX/bin/qmllint" -I "$QT_PREFIX/qml" fuzzy_desktop/qml/*.qml
 
 printf '\nTodo verde.\n'
