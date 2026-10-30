@@ -18,6 +18,8 @@ add_library(fuzzy_core
     src/FileStore.cpp
     src/MascotaFotoService.cpp
     src/GaleriaClinicaService.cpp
+    src/PasswordHasher.cpp
+    src/AuthService.cpp
 )
 add_library(fuzzy::core ALIAS fuzzy_core)
 
@@ -29,6 +31,11 @@ qt_add_resources(fuzzy_core "migraciones"
     FILES
         "${CMAKE_SOURCE_DIR}/db/migrations/portal/0001_init.sql"
         "${CMAKE_SOURCE_DIR}/db/migrations/portal/0002_portal.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0001_init.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0002_dominio.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0003_portal_token.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0004_sync.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0005_imagenes.sql"
 )
 
 target_include_directories(fuzzy_core PUBLIC

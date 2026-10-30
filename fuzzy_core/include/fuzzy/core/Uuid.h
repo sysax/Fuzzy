@@ -8,4 +8,7 @@ namespace fuzzy::core {
 // semilla produce siempre el mismo uuid y no duplica filas.
 QString uuidDeterminista(const QString& semilla);
 
+// UUID aleatorio (v4) para entidades nuevas.
+QString uuidNuevo();
+
 } // namespace fuzzy::core
