@@ -44,5 +44,24 @@ printf '== qml ==\n'
 # Todo el árbol QML, no solo la raíz: las vistas de la fase 7 viven en
 # fuzzy_desktop/qml/ y un error de tipos ahí no lo ve el lint de Main.qml.
 "$QT_PREFIX/bin/qmllint" -I "$QT_PREFIX/qml" fuzzy_desktop/qml/*.qml
+# El teléfono se lintan aparte porque sus vistas usan el mismo contexto
+# (`movil`, `estilo`, `versionApp`) que arma fuzzy_mobile/main.cpp.
+"$QT_PREFIX/bin/qmllint" -I "$QT_PREFIX/qml" fuzzy_mobile/qml/*.qml
+
+printf '== binario móvil sin tokens de portal ==\n'
+# D22: el directorio embebido solo publica datos comerciales y el token de
+# inserción del buzón. Un token de portal (lectura de la base de la clínica)
+# dentro del binario sería una fuga silenciosa.
+BINARIO="$ROOT/build/fuzzy_mobile/fuzzy_mobile"
+if [[ ! -x "$BINARIO" ]]; then
+    printf 'No existe %s. Compila la app móvil antes de comprobar.\n' "$BINARIO" >&2
+    exit 1
+fi
+for patron in token_portal portal_token token-clinica token-portal; do
+    if strings -a "$BINARIO" | grep -qi -- "$patron"; then
+        printf 'El binario móvil contiene el patrón prohibido: %s\n' "$patron" >&2
+        exit 1
+    fi
+done
 
 printf '\nTodo verde.\n'

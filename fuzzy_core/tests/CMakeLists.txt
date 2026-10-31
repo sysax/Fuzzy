@@ -102,3 +102,13 @@ fuzzy_esquema_test(tst_adjuntos_clinicos)
 # main es QTEST_GUILESS_MAIN (QCoreApplication), así corren en CI sin display.
 target_link_libraries(tst_mascota_foto PRIVATE Qt6::Gui)
 target_link_libraries(tst_adjuntos_clinicos PRIVATE Qt6::Gui)
+
+# Fase 8: cifrado de la caché del teléfono. Los vectores vienen de AES-256-GCM.
+qt_add_executable(tst_cryptobox tst_cryptobox.cpp)
+target_link_libraries(tst_cryptobox PRIVATE fuzzy::core Qt6::Test)
+add_test(NAME tst_cryptobox COMMAND tst_cryptobox)
+
+# Fase 8: flujo móvil completo sobre SQLite real (caché, buzón, portal, emparejamiento).
+qt_add_executable(tst_movil_servicios tst_movil_servicios.cpp)
+target_link_libraries(tst_movil_servicios PRIVATE fuzzy::core Qt6::Sql Qt6::Test)
+add_test(NAME tst_movil_servicios COMMAND tst_movil_servicios)
