@@ -150,6 +150,45 @@ jobs:
       - name: qmllint de todas las vistas
         run: qmllint -I "$QT_ROOT_DIR/qml" fuzzy_desktop/qml/*.qml
 
+  movil:
+    name: Móvil (fase 8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: Cifrado, servicios y controladores del teléfono
+        run: |
+          ctest --test-dir build --output-on-failure -R "tst_cryptobox|tst_movil_servicios|tst_mobile|tst_mobile_qml"
+
+      - name: qmllint de todas las vistas del teléfono
+        run: qmllint -I "$QT_ROOT_DIR/qml" fuzzy_mobile/qml/*.qml
+
+      - name: Sin tokens de portal en el binario
+        run: |
+          for patron in token_portal portal_token token-clinica token-portal; do
+            if strings -a build/fuzzy_mobile/fuzzy_mobile | grep -qi -- "$patron"; then
+              echo "El binario móvil contiene el patrón prohibido: $patron" >&2
+              exit 1
+            fi
+          done
+
   contract:
     name: Contrato del portal
     runs-on: ubuntu-latest

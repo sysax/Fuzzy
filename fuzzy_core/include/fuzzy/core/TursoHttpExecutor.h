@@ -21,6 +21,15 @@ public:
 
     std::vector<QueryRow> query(const QString& sql, const std::vector<QVariant>& params = {}) override;
 
+    // Último fallo del transporte. Una consulta fallida devuelve vacío por
+    // contrato, así que la app consulta esto para distinguir "sin red" de
+    // "token revocado" antes de decidir qué mostrar.
+    QString ultimoError() const { return ultimo_error_; }
+    bool accesoDenegado() const { return acceso_denegado_; }
+
+    // Sonda lista para `PortalCliente`: "ok" | "sin_red" | "sin_acceso".
+    QString salud() const;
+
 private:
     // Envía una sentencia y devuelve su `result` ya desempaquetado.
     bool ejecutar(const QString& sql, const std::vector<QVariant>& params,
@@ -30,6 +39,8 @@ private:
     QString token_;
     QString org_;
     QNetworkAccessManager manager_;
+    QString ultimo_error_;
+    bool acceso_denegado_ = false;
 };
 
 } // namespace fuzzy::core
