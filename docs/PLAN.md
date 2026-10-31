@@ -285,7 +285,7 @@ El buzón es de **un solo sentido** por diseño: con lectura, cualquier cliente 
 | **5 — Sync y proyección** | XL | **5A** clínica ↔ Turso: outbox, change log, LWW, tombstones, idempotencia. **5B** proyector y recolector, migración perezosa de portales | Dos nodos convergen; con un fixture de 3 clientes, cada portal **no contiene ningún `uuid` ajeno** (el test rompe el build); ida y vuelta de una solicitud; lote interrumpido recuperable |
 | **6 — Imágenes** | S | Foto de mascota (validación, reencodado, límites, reemplazo) y adjuntos clínicos que nunca salen del nodo | Reemplazo sin residuo; >2 MB rechazado; test que verifica que ningún binario clínico aparece en Turso |
 | **7 — Desktop, paridad Fase 1** | L | `AccessView` con tres estados, `BootstrapView`, asistente de alta de clínica, shell/panel, agenda, pacientes/historial, vínculos, inventario, facturación, Ajustes/Equipo | 15 baselines + `qmllint` + pruebas de controladores |
-| **8 — Mobile, paridad Fase 2** | XL | Directorio, buzón, registro local, importación al emparejar, portal directo, historial, agendar, mis citas, lista de portales con selector, caché cifrada, modo avión | Flujo completo offline → sync; dos portales de la misma persona aislados; conflicto y duplicado resueltos; ningún token de la clínica en el binario |
+| **8 — Mobile, paridad Fase 2** | XL | Directorio, buzón, registro local, importación al emparejar, portal directo, historial, agendar, mis citas, lista de portales con selector, caché cifrada, modo avión | Flujo completo offline → sync (`tst_mobile`); dos portales de la misma persona aislados (`tst_movil_servicios`); conflicto LWW, duplicado y tombstone resueltos; token cifrado en disco y binario sin tokens de portal |
 | **9 — Flujo clínico, paridad Fase 3** | XL | Recepción/triage, consulta/recetas/cargos, catálogos, laboratorio, hospitalización/cirugía, estética, caja/inventario, QA de staging | Seis flujos de punta a punta; matriz por rol/clínica; smoke con móvil real |
 | **10 — Producción y runbooks** | M | Alta de clínica en producción, environment protegido, backup, runbook del máster y del portal, CLI `fuzzy-admin`, simulacro de reversión | Despliegue reversible; runbook ejecutado en staging; cero secretos en Git o en binarios |
 
@@ -298,7 +298,7 @@ Cada subfase es una rama `feature/*` y un PR. Las fases 3 y 4 pueden solaparse; 
 | Suite | Qué cubre |
 |---|---|
 | `tests/schema` | Los cuatro esquemas desde cero en SQLite en memoria; constraints, FKs, vistas, triggers |
-| `fuzzy_core/tests` | Dominio, DAOs, auth local, PBKDF2, `CryptoBox`, matriz de permisos, caché offline |
+| `fuzzy_core/tests` | Dominio, DAOs, auth local, PBKDF2, `CryptoBox`, matriz de permisos, caché offline, `MovilStore`, portal y emparejamiento del teléfono |
 | `tests/portal` | **Aislamiento**: proyección desde un fixture de 3 clientes y ausencia de `uuid` ajenos; una persona con dos portales no cruza filas entre ellos |
 | `tests/multiclínica` | Credenciales de la sede A rechazadas en la sede B; el portal de A no conoce la URL ni el token de B; el directorio no contiene identidades ni tokens de clínica |
 | `tests/inbox` | Validación de filas, idempotencia, límites de tamaño y consumo único |
@@ -306,9 +306,9 @@ Cada subfase es una rama `feature/*` y un PR. Las fases 3 y 4 pueden solaparse; 
 | `tests/contract` | Portal con esquema `N` contra app `N-1` y viceversa |
 | `fuzzy_desktop/tests` | Controladores de escritorio (auth, agenda, clínica, caja, portal) |
 | `fuzzy_desktop/tests/visual` | 15 baselines con DejaVu empaquetada y fecha fija |
-| `fuzzy_mobile/tests` | Citas, offline, conflictos, emparejamiento, caché |
+| `fuzzy_mobile/tests` | 8 casos de controlador (offline → sync, selector de portales, revocación, cierre de sesión) y carga real de `Main.qml` con el directorio embebido |
 
-CI: `schema` (Atlas + SQLite efímero + seed), `qt-build` (Qt 6.11.2 + `qmllint` + `ctest`), `portal` (proyección y aislamiento), `contract`. El despliegue a producción es un runbook por clínica; solo el esquema de Turso y el directorio se automatizan.
+CI: `schema` (Atlas + SQLite efímero + seed), `qt` (Qt 6.11.2 + `ctest` + `qmllint`), `portal` (proyección y aislamiento), `desktop` (baselines de la fase 7), `movil` (cifrado, servicios, controladores, lint y escaneo del binario), `contract`. El despliegue a producción es un runbook por clínica; solo el esquema de Turso y el directorio se automatizan.
 
 ---
 

@@ -29,6 +29,9 @@ public:
     // Migraciones de la clínica, para el nodo de escritorio.
     static MigrationRunner clinic();
 
+    // Migraciones de la base local del teléfono (fase 8).
+    static MigrationRunner mobile();
+
     bool valido() const { return !migraciones_.isEmpty(); }
     QString directorio() const { return directorio_; }
     QString versionActual() const;
