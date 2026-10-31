@@ -74,6 +74,21 @@ MigrationRunner MigrationRunner::clinic()
     return MigrationRunner(directorio);
 }
 
+MigrationRunner MigrationRunner::mobile()
+{
+    static const bool recursos = fuzzyInicializarRecursosMigraciones();
+    Q_UNUSED(recursos);
+
+    QString directorio = QStringLiteral(":/fuzzy/migrations/mobile");
+    if (!QDir(directorio).exists()) {
+        const QByteArray alterno = qgetenv("FUZZY_MIGRATIONS_DIR");
+        if (!alterno.isEmpty()) {
+            directorio = QString::fromLocal8Bit(alterno) + QStringLiteral("/mobile");
+        }
+    }
+    return MigrationRunner(directorio);
+}
+
 void MigrationRunner::cargar()
 {
     migraciones_.clear();

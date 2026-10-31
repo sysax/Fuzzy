@@ -112,6 +112,9 @@ TursoHttpExecutor::TursoHttpExecutor(const QString& base_url, const QString& tok
 bool TursoHttpExecutor::ejecutar(const QString& sql, const std::vector<QVariant>& params,
                                  QJsonObject& resultado)
 {
+    ultimo_error_.clear();
+    acceso_denegado_ = false;
+
     QString url = base_url_;
     while (url.endsWith(QLatin1Char('/'))) {
         url.chop(1);
@@ -164,15 +167,26 @@ bool TursoHttpExecutor::ejecutar(const QString& sql, const std::vector<QVariant>
     }
 
     const QNetworkReply::NetworkError error = reply->error();
+    const int estado = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const QByteArray respuesta = reply->readAll();
+    const QString errorTexto = reply->errorString();
     delete reply;
 
     if (error != QNetworkReply::NetworkError::NoError) {
+        ultimo_error_ = errorTexto;
+        // 401/403: el token dejó de abrir la base (rotado, revocado o borrado).
+        acceso_denegado_ = (estado == 401 || estado == 403);
+        return false;
+    }
+    if (estado >= 400) {
+        ultimo_error_ = QStringLiteral("HTTP %1").arg(estado);
+        acceso_denegado_ = (estado == 401 || estado == 403);
         return false;
     }
 
     const QJsonDocument doc = QJsonDocument::fromJson(respuesta);
     if (!doc.isObject()) {
+        ultimo_error_ = QStringLiteral("Respuesta no válida del servidor");
         return false;
     }
 
@@ -218,6 +232,17 @@ std::vector<QueryRow> TursoHttpExecutor::query(const QString& sql,
         filas.push_back(std::move(fila));
     }
     return filas;
+}
+
+QString TursoHttpExecutor::salud() const
+{
+    if (acceso_denegado_) {
+        return QStringLiteral("sin_acceso");
+    }
+    if (!ultimo_error_.isEmpty()) {
+        return QStringLiteral("sin_red");
+    }
+    return QStringLiteral("ok");
 }
 
 } // namespace fuzzy::core
