@@ -4,7 +4,7 @@ Gestión para clínica veterinaria: escritorio para el personal, app para el due
 
 ## Estado
 
-**Fase 6 — imágenes, cerrada.** Las fases 0–6 están integradas; la siguiente es la fase 7 (desktop, paridad Fase 1). El motor de sync y la proyección se explican en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); las dos rutas de imagen y su límite, en [`docs/imagenes.md`](docs/imagenes.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
+**Fase 9 — flujo clínico, cerrada.** Las fases 0–9 están integradas; la siguiente es la fase 10 (producción y runbooks). El flujo clínico y su matriz de autorización se explican en [`docs/clinico.md`](docs/clinico.md); el motor de sync y la proyección, en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); las dos rutas de imagen y su límite, en [`docs/imagenes.md`](docs/imagenes.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Toolchain
 

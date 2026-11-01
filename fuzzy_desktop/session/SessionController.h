@@ -24,6 +24,7 @@ class SessionController : public QObject
     Q_PROPERTY(QString correo READ correo NOTIFY sesionCambiada)
     Q_PROPERTY(QString rol READ rol NOTIFY sesionCambiada)
     Q_PROPERTY(QString usuarioUuid READ usuarioUuid NOTIFY sesionCambiada)
+    Q_PROPERTY(QString clinicaUuid READ clinicaUuid NOTIFY sesionCambiada)
     Q_PROPERTY(QString nombreClinica READ nombreClinica NOTIFY sesionCambiada)
     Q_PROPERTY(QStringList permisos READ permisos NOTIFY sesionCambiada)
     Q_PROPERTY(QString error READ error NOTIFY errorCambiado)
@@ -39,6 +40,7 @@ public:
     QString correo() const { return correo_; }
     QString rol() const { return fuzzy::core::AuthService::nombreRol(sesion_.rol); }
     QString usuarioUuid() const { return sesion_.cuenta_id; }
+    QString clinicaUuid() const { return sesion_.clinica_id; }
     QString nombreClinica() const { return nombreClinica_; }
     QString error() const { return error_; }
     QString mensaje() const { return mensaje_; }

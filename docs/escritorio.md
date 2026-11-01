@@ -1,9 +1,10 @@
 # Escritorio (fase 7)
 
-La aplicación de escritorio alcanza la paridad con la fase 1 del producto:
-acceso, shell, panel, agenda, pacientes e historial, propietarios, inventario,
-facturación, vínculos y ajustes. El diseño de origen está en
-[`PLAN.md`](./PLAN.md) §6 y las reglas de identidad en §3.
+La aplicación de escritorio alcanza la paridad con las fases 1 y 3 del
+producto: acceso, shell, panel, agenda, pacientes e historial, propietarios,
+flujo clínico (fase 9), inventario, facturación, vínculos y ajustes. El diseño
+de origen está en [`PLAN.md`](./PLAN.md) §6, las reglas de identidad en §3 y el
+detalle clínico en [`clinico.md`](./clinico.md).
 
 ## 1. Capas
 
@@ -66,6 +67,7 @@ implementa sobre la misma lista.
 | Ficha | `PacientesController` | Historia, signos, vacunas, alergias y contacto |
 | Historial clínico | `PacientesController` | Consulta transversal de todas las mascotas |
 | Propietarios | `PropietariosController` | Directorio, alta, edición y mascotas |
+| Clínico | `ClinicoController` | Recepción, triaje, consulta, recetas, laboratorio, hospitalización, cirugía, estética y caja |
 | Inventario | `InventarioController` | Stock, mínimo, caducidad, ajustes y pedidos |
 | Facturación | `FacturacionController` | Borrador, emisión, cobro, anulación y cierre de caja |
 | Vínculos | `VinculosController` | Alta de portal, QR de emparejamiento, revocación y borrado |
@@ -80,28 +82,29 @@ filtrada que ve el usuario.
 ### Controladores
 
 `fuzzy_desktop/tests/tst_controladores.cpp` enlaza solo
-`fuzzy_desktop_controllers` y ejecuta 12 casos contra SQLite real:
+`fuzzy_desktop_controllers` y ejecuta 13 casos contra SQLite real:
 
 ```
 bootstrapYLogin · reglasDelEquipo · restablecerPassword · pacientesYHistoria
 propietarios · inventario · facturacionYCaja · vinculosDelPortal
-agendaDeCitas · ajustesDeClinica
+agendaDeCitas · ajustesDeClinica · clinicoFlujo
 ```
 
 Cubren el alta única, la clave temporal, el último Admin, la unicidad de
-correo, el historial, el stock, la caja, el token del portal y el cambio de
-estado de una cita. No usan dobles: cada caso migra una base temporal y
-ejercita los servicios reales.
+correo, el historial, el stock, la caja, el token del portal, el cambio de
+estado de una cita y el puente QML del flujo clínico. No usan dobles: cada caso
+migra una base temporal y ejercita los servicios reales.
 
 ### Baselines visuales
 
 `fuzzy_desktop/tests/visual/tst_visual.cpp` levanta la app completa contra una
-base temporal sembrada y captura 15 pantallas:
+base temporal sembrada y captura 17 pantallas:
 
 ```
 access-login · access-bootstrap · access-change
 panel · agenda-semana · agenda-dia
 pacientes · ficha-paciente · historial · propietarios
+clinico · clinico-laboratorio
 inventario · facturacion · vinculos
 ajustes-clinica · ajustes-equipo
 ```
@@ -114,8 +117,8 @@ Detalles que hacen las capturas reproducibles:
   las fuentes del sistema ni de CI.
 - `FUZZY_HOY=2026-03-09` (lunes) fija la fecha de todos los controladores.
 - Semilla con datos reales (propietarios, mascotas, consultas, signos, vacunas,
-  citas, productos, facturas y un portal emparejado), creada con los mismos
-  servicios que la app.
+  citas, productos, facturas, exámenes, hospitalizaciones, cirugías, estética,
+  cargos y un portal emparejado), creada con los mismos servicios que la app.
 - Comparación en escala de grises 192×120: falla si la diferencia media supera
   `2.5` o si un bloque de 8×8 supera `24.0`.
 

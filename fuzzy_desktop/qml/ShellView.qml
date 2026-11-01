@@ -17,6 +17,7 @@ Item {
         { nombre: qsTr("Pacientes"), icono: "people", permiso: "RegistrarConsulta" },
         { nombre: qsTr("Historial clínico"), icono: "file-medical", permiso: "RegistrarConsulta" },
         { nombre: qsTr("Propietarios"), icono: "person-vcard", permiso: "RegistrarCliente" },
+        { nombre: qsTr("Clínico"), icono: "capsule", permiso: "GestionarCitas" },
         { nombre: qsTr("Inventario"), icono: "box-seam", permiso: "GestionarInventario" },
         { nombre: qsTr("Facturación"), icono: "receipt", permiso: "EmitirFactura" },
         { nombre: qsTr("Vínculos"), icono: "shield-check", permiso: "AprobarVinculo" },
@@ -301,6 +302,7 @@ Item {
                 PacientesView {}
                 HistorialView { onAbrirPaciente: root.irA(2) }
                 PropietariosView { onIrAPacientes: root.irA(2) }
+                ClinicoView {}
                 InventarioView {}
                 FacturacionView {}
                 VinculosView {}

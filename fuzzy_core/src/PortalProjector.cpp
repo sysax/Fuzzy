@@ -299,6 +299,39 @@ ResultadoProyeccion PortalProjector::proyectar(const QString& portal_uuid)
         ++resultado.filas;
     }
 
+    // ── Laboratorio ──────────────────────────────────────────
+    // El dueño ve la solicitud, el estado y el resultado; nunca el precio ni
+    // la nota interna. `solicitado_por` es solo el nombre del veterinario.
+    const auto laboratorio = clinica_.query(
+        QStringLiteral("SELECT l.uuid, m.uuid, l.fecha_solicitud, l.fecha_resultado, "
+                       "l.tipo_examen, l.resultado, l.estado, "
+                       "COALESCE(u.nombre_completo, ''), l.created_at, l.updated_at, "
+                       "l.deleted_at "
+                       "FROM laboratorio_solicitudes l "
+                       "JOIN mascotas m ON m.id = l.mascota_id "
+                       "LEFT JOIN usuarios u ON u.id = l.veterinario_id "
+                       "WHERE m.cliente_id = ?"),
+        {QVariant::fromValue(cliente_id)});
+    QStringList laboratorioUuids;
+    for (const QueryRow& fila : laboratorio) {
+        const auto& v = fila.values;
+        laboratorioUuids.append(v.at(0).toString());
+        ok = ok && upsert(*portal, QStringLiteral("laboratorio"),
+                          QStringList{QStringLiteral("uuid"), QStringLiteral("mascota_uuid"),
+                                      QStringLiteral("fecha_solicitud"),
+                                      QStringLiteral("fecha_resultado"),
+                                      QStringLiteral("tipo_examen"),
+                                      QStringLiteral("resultado"), QStringLiteral("estado"),
+                                      QStringLiteral("solicitado_por"),
+                                      QStringLiteral("created_at"),
+                                      QStringLiteral("updated_at"),
+                                      QStringLiteral("deleted_at")},
+                          {v.at(0), v.at(1), v.at(2), v.at(3), v.at(4), v.at(5),
+                           v.at(6), v.at(7), v.at(8), v.at(9), v.at(10)},
+                          QStringLiteral("uuid"));
+        ++resultado.filas;
+    }
+
     // ── Pesos (signos vitales con peso) ──────────────────────
     const auto pesos = clinica_.query(
         QStringLiteral("SELECT s.uuid, m.uuid, s.fecha, s.peso_kg, s.created_at, "
@@ -384,6 +417,8 @@ ResultadoProyeccion PortalProjector::proyectar(const QString& portal_uuid)
     ok = ok && marcarAusentes(*portal, QStringLiteral("recetas"), recetaUuids, ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("receta_items"), itemUuids, ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("vacunas"), vacunaUuids, ahora);
+    ok = ok && marcarAusentes(*portal, QStringLiteral("laboratorio"), laboratorioUuids,
+                              ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("pesos"), pesoUuids, ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("citas"), citaUuids, ahora);
     ok = ok && marcarAusentes(*portal, QStringLiteral("adjuntos"), adjuntoUuids, ahora);

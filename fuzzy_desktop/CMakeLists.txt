@@ -5,6 +5,7 @@ set(FUZZY_DESKTOP_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(FUZZY_CONTROLLERS
     agenda/AgendaController.cpp
     ajustes/AjustesController.cpp
+    clinico/ClinicoController.cpp
     common/Consulta.cpp
     facturacion/FacturacionController.cpp
     inventario/InventarioController.cpp

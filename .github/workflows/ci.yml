@@ -189,6 +189,39 @@ jobs:
             fi
           done
 
+  clinico:
+    name: Clínico (fase 9)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: Flujos clínicos, permisos y migración 0006
+        run: |
+          ctest --test-dir build --output-on-failure -R "tst_clinico|tst_politicas|tst_migration_runner"
+
+      - name: Puente QML del escritorio
+        run: ctest --test-dir build --output-on-failure -R tst_controladores
+
+      - name: qmllint de todas las vistas
+        run: qmllint -I "$QT_ROOT_DIR/qml" fuzzy_desktop/qml/*.qml
+
   contract:
     name: Contrato del portal
     runs-on: ubuntu-latest

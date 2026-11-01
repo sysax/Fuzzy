@@ -1,6 +1,7 @@
-h1:vHDg0MrJpg+PzZbcf4LrmHORoJ/VI3CSuTnD/wbCb9I=
+h1:9s6tKO45J1vYVGRZl0XjdNZvObF23jO069p3LbpFSPE=
 0001_init.sql h1:a12yWPNQGocsoATKOvOWGk4ZdBlwEQX7f+CeszrGUrM=
 0002_dominio.sql h1:U3dEx1F1FV0SAKr8uPhawcoy742vkn63ACnnwn3SrG0=
 0003_portal_token.sql h1:zYFp3fTTFKhrHSKkWPy4mX4ZSDUUFcZKcTjN1y9qm3c=
 0004_sync.sql h1:7tg9RIUNoCCfhR6vzOjGSxSL3rn+b6f1hw6CfIvkMjM=
 0005_imagenes.sql h1:qINJnJOKZPbHz2jDGqIMHL7S4PlDqKlSct+FIgnSP6g=
+0006_clinico.sql h1:4nvbTtHDYZs1RAR2/bifNYsJ9nCdtRni1GFJiZXdsyY=

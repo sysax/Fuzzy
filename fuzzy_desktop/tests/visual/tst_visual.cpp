@@ -1,5 +1,6 @@
 #include "agenda/AgendaController.h"
 #include "ajustes/AjustesController.h"
+#include "clinico/ClinicoController.h"
 #include "common/Consulta.h"
 #include "facturacion/FacturacionController.h"
 #include "fuzzy/core/AuthService.h"
@@ -175,8 +176,12 @@ DatosDemo sembrarDemo(fuzzy::core::AuthService& auth, fuzzy::core::IQueryExecuto
 
     auth.crearUsuario(demo.adminUuid, QStringLiteral("Lucía Prado"),
                       QStringLiteral("lucia@aurora.test"), QStringLiteral("Recepcion"));
-    auth.crearUsuario(demo.adminUuid, QStringLiteral("Nadia Ferrer"),
-                      QStringLiteral("nadia@aurora.test"), QStringLiteral("Estilista"));
+    const auto nadia = auth.crearUsuario(demo.adminUuid, QStringLiteral("Nadia Ferrer"),
+                                         QStringLiteral("nadia@aurora.test"),
+                                         QStringLiteral("Estilista"));
+    if (!nadia.ok) {
+        qFatal("No se pudo crear la estilista: %s", qPrintable(nadia.error));
+    }
 
     // ── Propietarios ─────────────────────────────────────────
     struct Cliente
@@ -535,6 +540,167 @@ DatosDemo sembrarDemo(fuzzy::core::AuthService& auth, fuzzy::core::IQueryExecuto
     // Rocky es el paciente de la consulta de hoy: mantiene la sala de espera.
     Q_UNUSED(idRocky);
 
+    // ── Flujo clínico (fase 9) ───────────────────────────────
+    const qint64 idNala = idDe(db, QStringLiteral("mascotas"), u(QStringLiteral("mascota-3")));
+    const qint64 idKira = idDe(db, QStringLiteral("mascotas"), u(QStringLiteral("mascota-4")));
+    const qint64 idToby = idDe(db, QStringLiteral("mascotas"), u(QStringLiteral("mascota-6")));
+    const qint64 idCoco = idDe(db, QStringLiteral("mascotas"), u(QStringLiteral("mascota-7")));
+
+    const qint64 labLuna = insertar(
+        db,
+        QStringLiteral("INSERT INTO laboratorio_solicitudes "
+                       "(uuid, mascota_id, veterinario_id, tipo_examen_id, tipo_examen, "
+                       " prioridad, estado, fecha_solicitud, fecha_resultado, resultado, "
+                       " observaciones, created_at, updated_at, sync_state) "
+                       "VALUES (?, ?, ?, 1, 'Hemograma completo', 'Urgente', 'Listo', ?, ?, "
+                       "        ?, ?, ?, ?, 'pendiente')"),
+        {QVariant(u(QStringLiteral("lab-0"))), QVariant::fromValue(idLuna),
+         QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 10, 0)),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 12, 15)),
+         QVariant(QStringLiteral("Serie roja y blanca dentro de rangos normales.")),
+         QVariant(QStringLiteral("Ayuno de 8 horas.")),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 10, 0)),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 12, 15))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO laboratorio_solicitudes "
+                            "(uuid, mascota_id, veterinario_id, tipo_examen_id, tipo_examen, "
+                            " prioridad, estado, fecha_solicitud, observaciones, created_at, "
+                            " updated_at, sync_state) "
+                            "VALUES (?, ?, ?, 2, 'Química sanguínea', 'Normal', 'Solicitado', "
+                            "        ?, ?, ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("lab-1"))), QVariant::fromValue(idRocky),
+              QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+              QVariant::fromValue(msEn(kHoy, 9, 45)),
+              QVariant(QStringLiteral("Control de función renal.")),
+              QVariant::fromValue(msEn(kHoy, 9, 45)),
+              QVariant::fromValue(msEn(kHoy, 9, 45))});
+
+    const qint64 ingresoNala = insertar(
+        db,
+        QStringLiteral("INSERT INTO hospitalizaciones "
+                       "(uuid, mascota_id, veterinario_id, fecha_ingreso, motivo, "
+                       " diagnostico, area, estado, notas, created_at, updated_at, "
+                       " sync_state) "
+                       "VALUES (?, ?, ?, ?, 'Vómitos persistentes', 'Gastroenteritis', "
+                       "        'UCI', 'Activa', 'Hidratación IV', ?, ?, 'pendiente')"),
+        {QVariant(u(QStringLiteral("hospital-0"))), QVariant::fromValue(idNala),
+         QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 18, 30)),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 18, 30)),
+         QVariant::fromValue(msEn(kHoy.addDays(-1), 18, 30))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO hospitalizacion_evoluciones "
+                            "(uuid, hospitalizacion_id, usuario_id, fecha, nota, peso_kg, "
+                            " temperatura_c, frecuencia_cardiaca, created_at, updated_at, "
+                            " sync_state) "
+                            "VALUES (?, ?, ?, ?, 'Mejor apetito, sin vómitos.', 3.8, 38.2, "
+                            "        96, ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("evolucion-0"))), QVariant::fromValue(ingresoNala),
+              QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+              QVariant::fromValue(msEn(kHoy, 7, 30)),
+              QVariant::fromValue(msEn(kHoy, 7, 30)),
+              QVariant::fromValue(msEn(kHoy, 7, 30))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO hospitalizaciones "
+                            "(uuid, mascota_id, veterinario_id, fecha_ingreso, fecha_alta, "
+                            " motivo, diagnostico, area, estado, created_at, updated_at, "
+                            " sync_state) "
+                            "VALUES (?, ?, ?, ?, ?, 'Postoperatorio', 'Recuperación', "
+                            "        'Hospitalización', 'Alta', ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("hospital-1"))), QVariant::fromValue(idKira),
+              QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+              QVariant::fromValue(msEn(kHoy.addDays(-3), 15, 0)),
+              QVariant::fromValue(msEn(kHoy.addDays(-1), 11, 0)),
+              QVariant::fromValue(msEn(kHoy.addDays(-3), 15, 0)),
+              QVariant::fromValue(msEn(kHoy.addDays(-1), 11, 0))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO cirugias "
+                            "(uuid, mascota_id, veterinario_id, fecha_programada, "
+                            " procedimiento, anestesia, estado, created_at, updated_at, "
+                            " sync_state) "
+                            "VALUES (?, ?, ?, ?, 'Esterilización', 'General', 'Programada', "
+                            "        ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("cirugia-0"))), QVariant::fromValue(idLuna),
+              QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+              QVariant::fromValue(msEn(kHoy.addDays(1), 9, 0)),
+              QVariant::fromValue(msEn(kHoy.addDays(-2), 16, 0)),
+              QVariant::fromValue(msEn(kHoy.addDays(-2), 16, 0))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO cirugias "
+                            "(uuid, mascota_id, veterinario_id, fecha_programada, "
+                            " fecha_inicio, procedimiento, anestesia, estado, created_at, "
+                            " updated_at, sync_state) "
+                            "VALUES (?, ?, ?, ?, ?, 'Extracción dental', 'Inhalada', "
+                            "        'En curso', ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("cirugia-1"))), QVariant::fromValue(idRocky),
+              QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), marco.uuid)),
+              QVariant::fromValue(msEn(kHoy, 11, 0)),
+              QVariant::fromValue(msEn(kHoy, 11, 10)),
+              QVariant::fromValue(msEn(kHoy, 11, 0)),
+              QVariant::fromValue(msEn(kHoy, 11, 10))});
+
+    insertar(
+        db,
+        QStringLiteral("INSERT INTO estetica_servicios "
+                       "(uuid, mascota_id, estilista_id, fecha, tipo, precio, "
+                       " observaciones, estado, created_at, updated_at, sync_state) "
+                       "VALUES (?, ?, ?, ?, 'Baño y corte', 60000, 'Sin nudos.', "
+                       "        'Realizado', ?, ?, 'pendiente')"),
+        {QVariant(u(QStringLiteral("estetica-0"))), QVariant::fromValue(idToby),
+         QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), nadia.uuid)),
+         QVariant::fromValue(msEn(kHoy, 10, 30)),
+         QVariant::fromValue(msEn(kHoy, 10, 30)),
+         QVariant::fromValue(msEn(kHoy, 10, 30))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO estetica_servicios "
+                            "(uuid, mascota_id, estilista_id, fecha, tipo, precio, "
+                            " estado, created_at, updated_at, sync_state) "
+                            "VALUES (?, ?, ?, ?, 'Baño', 30000, 'Realizado', ?, ?, "
+                            "        'pendiente')"),
+             {QVariant(u(QStringLiteral("estetica-1"))), QVariant::fromValue(idCoco),
+              QVariant::fromValue(idDe(db, QStringLiteral("usuarios"), nadia.uuid)),
+              QVariant::fromValue(msEn(kHoy, 14, 0)),
+              QVariant::fromValue(msEn(kHoy, 14, 0)),
+              QVariant::fromValue(msEn(kHoy, 14, 0))});
+
+    insertar(db,
+             QStringLiteral("INSERT INTO cargos "
+                            "(uuid, origen_tipo, origen_id, origen_uuid, concepto, monto, "
+                            " estado, created_at, updated_at, sync_state) "
+                            "VALUES (?, 'Consulta', ?, ?, 'Consulta general', 85000, "
+                            "        'Pendiente', ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("cargo-0"))), QVariant::fromValue(consulta1),
+              QVariant(u(QStringLiteral("consulta-1"))),
+              QVariant::fromValue(msEn(kHoy, 8, 40)),
+              QVariant::fromValue(msEn(kHoy, 8, 40))});
+    insertar(db,
+             QStringLiteral("INSERT INTO cargos "
+                            "(uuid, origen_tipo, origen_id, origen_uuid, concepto, monto, "
+                            " estado, created_at, updated_at, sync_state) "
+                            "VALUES (?, 'Laboratorio', ?, ?, 'Hemograma completo', 120000, "
+                            "        'Pendiente', ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("cargo-1"))), QVariant::fromValue(labLuna),
+              QVariant(u(QStringLiteral("lab-0"))),
+              QVariant::fromValue(msEn(kHoy, 9, 50)),
+              QVariant::fromValue(msEn(kHoy, 9, 50))});
+    insertar(db,
+             QStringLiteral("INSERT INTO cargos "
+                            "(uuid, origen_tipo, origen_id, origen_uuid, concepto, monto, "
+                            " estado, created_at, updated_at, sync_state) "
+                            "VALUES (?, 'Otro', 0, ?, 'Estética: Baño y corte', 60000, "
+                            "        'Pendiente', ?, ?, 'pendiente')"),
+             {QVariant(u(QStringLiteral("cargo-2"))),
+              QVariant(u(QStringLiteral("estetica-0"))),
+              QVariant::fromValue(msEn(kHoy, 10, 35)),
+              QVariant::fromValue(msEn(kHoy, 10, 35))});
+
     // ── Facturación ──────────────────────────────────────────
     struct Factura
     {
@@ -667,6 +833,7 @@ public:
         agenda_ = std::make_unique<fuzzy::desktop::AgendaController>(*db_);
         pacientes_ = std::make_unique<fuzzy::desktop::PacientesController>(*db_);
         propietarios_ = std::make_unique<fuzzy::desktop::PropietariosController>(*db_);
+        clinico_ = std::make_unique<fuzzy::desktop::ClinicoController>(*db_);
         inventario_ = std::make_unique<fuzzy::desktop::InventarioController>(*db_);
         facturacion_ = std::make_unique<fuzzy::desktop::FacturacionController>(*db_);
         ajustes_ = std::make_unique<fuzzy::desktop::AjustesController>(*auth_);
@@ -693,6 +860,7 @@ public:
         contexto->setContextProperty(QStringLiteral("agenda"), agenda_.get());
         contexto->setContextProperty(QStringLiteral("pacientes"), pacientes_.get());
         contexto->setContextProperty(QStringLiteral("propietarios"), propietarios_.get());
+        contexto->setContextProperty(QStringLiteral("clinico"), clinico_.get());
         contexto->setContextProperty(QStringLiteral("inventario"), inventario_.get());
         contexto->setContextProperty(QStringLiteral("facturacion"), facturacion_.get());
         contexto->setContextProperty(QStringLiteral("ajustes"), ajustes_.get());
@@ -740,6 +908,7 @@ private:
     std::unique_ptr<fuzzy::desktop::AgendaController> agenda_;
     std::unique_ptr<fuzzy::desktop::PacientesController> pacientes_;
     std::unique_ptr<fuzzy::desktop::PropietariosController> propietarios_;
+    std::unique_ptr<fuzzy::desktop::ClinicoController> clinico_;
     std::unique_ptr<fuzzy::desktop::InventarioController> inventario_;
     std::unique_ptr<fuzzy::desktop::FacturacionController> facturacion_;
     std::unique_ptr<fuzzy::desktop::AjustesController> ajustes_;
@@ -905,23 +1074,35 @@ void VisualTest::modulos()
     esperar();
     QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("propietarios")));
 
-    // Inventario.
+    // Flujo clínico: recepción del día y laboratorio.
     shell->setProperty("seleccion", 5);
+    esperar();
+    auto* clinico = ventana->findChild<QQuickItem*>(QStringLiteral("clinicoView"));
+    QVERIFY(clinico);
+    QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("clinico")));
+
+    clinico->setProperty("seccion", QStringLiteral("laboratorio"));
+    esperar();
+    QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("clinico-laboratorio")));
+    clinico->setProperty("seccion", QStringLiteral("recepcion"));
+
+    // Inventario.
+    shell->setProperty("seleccion", 6);
     esperar();
     QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("inventario")));
 
     // Facturación.
-    shell->setProperty("seleccion", 6);
+    shell->setProperty("seleccion", 7);
     esperar();
     QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("facturacion")));
 
     // Vínculos con el portal.
-    shell->setProperty("seleccion", 7);
+    shell->setProperty("seleccion", 8);
     esperar();
     QVERIFY(comparar(ventana->grabWindow(), QStringLiteral("vinculos")));
 
     // Ajustes: clínica y equipo.
-    shell->setProperty("seleccion", 8);
+    shell->setProperty("seleccion", 9);
     esperar();
     auto* ajustes = ventana->findChild<QQuickItem*>(QStringLiteral("ajustesView"));
     QVERIFY(ajustes);
@@ -989,12 +1170,12 @@ void VisualTest::navegacionPorClicks()
     esperar(700);
 
     const QList<QPoint> filas = filasDelSidebar(ventana);
-    QCOMPARE(filas.size(), 9);
+    QCOMPARE(filas.size(), 10);
 
-    // Vínculos es la octava entrada; el clic debe mover la selección.
-    QTest::mouseClick(ventana, Qt::LeftButton, Qt::NoModifier, filas.at(7));
+    // Vínculos es la novena entrada; el clic debe mover la selección.
+    QTest::mouseClick(ventana, Qt::LeftButton, Qt::NoModifier, filas.at(8));
     esperar(500);
-    QCOMPARE(shell->property("seleccion").toInt(), 7);
+    QCOMPARE(shell->property("seleccion").toInt(), 8);
 
     // Y volver a otra entrada.
     QTest::mouseClick(ventana, Qt::LeftButton, Qt::NoModifier, filas.at(2));

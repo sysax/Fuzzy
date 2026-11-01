@@ -21,6 +21,8 @@ ApplicationWindow {
     function recargarTodo() {
         panel.cargar()
         agenda.cargar()
+        clinico.setSesion(sesion.rol, sesion.clinicaUuid, sesion.usuarioUuid)
+        clinico.cargar()
         pacientes.cargar()
         pacientes.buscarHistorial("")
         propietarios.cargar()

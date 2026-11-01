@@ -57,7 +57,7 @@ void TstMigrationRunner::esquemaClinicoCompleto()
     const MigrationRunner runner(migracionesDir() + QStringLiteral("/clinic"));
     QVERIFY2(runner.valido(), "no se encontraron las migraciones de la clínica");
     QVERIFY(runner.aplicar(executor));
-    QCOMPARE(runner.versionActual(), QStringLiteral("0005"));
+    QCOMPARE(runner.versionActual(), QStringLiteral("0006"));
 
     QVERIFY(existeTabla(executor, QStringLiteral("sync_outbox")));
     QVERIFY(existeTabla(executor, QStringLiteral("sync_change_log")));
@@ -79,12 +79,22 @@ void TstMigrationRunner::esquemaClinicoCompleto()
     QVERIFY(!existeColumna(executor, QStringLiteral("mascota_galeria"),
                            QStringLiteral("foto")));
 
+    // La fase 9 añade el flujo clínico completo sobre el nodo.
+    QVERIFY(existeTabla(executor, QStringLiteral("tipos_examen_laboratorio")));
+    QVERIFY(existeTabla(executor, QStringLiteral("laboratorio_solicitudes")));
+    QVERIFY(existeTabla(executor, QStringLiteral("hospitalizaciones")));
+    QVERIFY(existeTabla(executor, QStringLiteral("hospitalizacion_evoluciones")));
+    QVERIFY(existeTabla(executor, QStringLiteral("cirugias")));
+    QVERIFY(existeTabla(executor, QStringLiteral("estetica_servicios")));
+    QVERIFY(existeTabla(executor, QStringLiteral("movimientos_inventario")));
+
     // Las migraciones sembraron catálogos estables para resolver referencias.
     QCOMPARE(contar(executor, QStringLiteral("estados_cita")), 6LL);
     QCOMPARE(contar(executor, QStringLiteral("tipos_servicio_cita")), 3LL);
+    QCOMPARE(contar(executor, QStringLiteral("tipos_examen_laboratorio")), 6LL);
 
     QVERIFY(runner.aplicar(executor));
-    QCOMPARE(contar(executor, QStringLiteral("_fuzzy_migraciones")), 5LL);
+    QCOMPARE(contar(executor, QStringLiteral("_fuzzy_migraciones")), 6LL);
 }
 
 QTEST_MAIN(TstMigrationRunner)

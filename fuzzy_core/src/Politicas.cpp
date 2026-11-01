@@ -36,7 +36,8 @@ std::vector<Permiso> Politicas::permisosDe(const Rol rol) const
         {Rol::Recepcion, {Permiso::VerPanel, Permiso::GestionarCitas, Permiso::RegistrarCliente,
                           Permiso::EmitirFactura, Permiso::CerrarCaja, Permiso::GestionarInventario,
                           Permiso::AprobarVinculo}},
-        {Rol::Estilista, {Permiso::VerPanel, Permiso::GestionarCitas, Permiso::GestionarInventario}},
+        {Rol::Estilista, {Permiso::VerPanel, Permiso::GestionarCitas,
+                          Permiso::GestionarInventario, Permiso::RegistrarEstetica}},
         {Rol::Cliente,  {}},
         {Rol::Desconocido, {}},
     };
