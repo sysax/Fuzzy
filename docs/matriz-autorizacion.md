@@ -39,6 +39,7 @@ Acciones nuevas de este plan:
 |---|:---:|:---:|:---:|:---:|---|
 | AprobarVinculo | ✓ | – | ✓ | – | D9 |
 | VerAuditoria | ✓ | – | – | – | D8, D9 |
+| RegistrarEstetica | ✓ | – | – | ✓ | Fase 9 (`estetica_servicios`) |
 
 ## 3. Recursos
 
@@ -70,6 +71,24 @@ Acciones nuevas de este plan:
 | `productos_insumos` | CRUD | R | CRUD | R | – |
 | `storage.objects` (galería) | R + C + D | R + C + D | R + C + D | R + C + D | – |
 
+### 3.1 Recursos clínicos (fase 9)
+
+Estas tablas no se escriben desde formularios genéricos: solo las toca
+`ServicioClinico`, que exige el permiso indicado. La lectura queda disponible
+para el personal de la clínica.
+
+| Tabla | Escritura | Permiso |
+|---|---|---|
+| `tipos_examen_laboratorio` | crear / actualizar | `ConfigurarClinica` |
+| `laboratorio_solicitudes` | crear / avanzar estado / resultado | `RegistrarConsulta` |
+| `hospitalizaciones` | ingreso / alta | `RegistrarConsulta` |
+| `hospitalizacion_evoluciones` | crear | `RegistrarConsulta` |
+| `cirugias` | programar / iniciar / cerrar | `RegistrarConsulta` |
+| `estetica_servicios` | crear | `RegistrarEstetica` |
+| `movimientos_inventario` | crear | `GestionarInventario` |
+| `cargos` | crear desde consulta/receta | `RegistrarConsulta` |
+| `facturas` / `cierres_caja` | emitir / cerrar | `EmitirFactura` / `CerrarCaja` |
+
 ## 4. Reglas transversales
 
 1. **Aislamiento por clínica.** Toda consulta filtra por `clinica_id` de la sesión. Un Admin de la clínica A no ve la clínica B.
@@ -88,7 +107,7 @@ Detectadas al comparar el enum con las políticas; ninguna se resuelve por accid
 | # | Discrepancia | Propuesta |
 |---|---|---|
 | 1 | Veterinario tiene `GestionarInventario`, pero en RLS solo lee `productos_insumos` | El inventario lo escriben Admin y Recepcion; el Veterinario descuenta por receta, no edita el catálogo. Retirar la acción o acotarla a `SuministrarMedicamento`. |
-| 2 | No existe acción de estética y RLS da al Estilista CRUD en `citas` y galería | Añadir `RegistrarEstetica` si el módulo entra en la fase 9; mientras tanto, el Estilista agenda y galería. |
+| 2 | No existe acción de estética y RLS da al Estilista CRUD en `citas` y galería | **Resuelta en fase 9.** Se añadió `RegistrarEstetica`; el Estilista registra `estetica_servicios` y no abre consultas ni factura. |
 | 3 | `cargos` permite insertar al Veterinario pero el CRUD es de Admin/Recepcion | Unificar: el Veterinario no crea cargos; los genera la consulta. |
 | 4 | RLS deja al Estilista leer `consultas_medicas` completa, pero el plan dice "sin notas clínicas" | Vista `consultas_resumen` sin notas para Recepcion y Estilista. SQLite no tiene RLS por columna. |
 | 5 | `clientes` es CRUD para todo el personal, incluido `delete` | El modelo nuevo usa `deleted_at`; el borrado físico queda solo en la CLI de operador. |

@@ -304,11 +304,12 @@ Cada subfase es una rama `feature/*` y un PR. Las fases 3 y 4 pueden solaparse; 
 | `tests/inbox` | Validación de filas, idempotencia, límites de tamaño y consumo único |
 | `tests/tokens` | Un token de portal no lee la clínica ni otro portal; no borra; caducidad |
 | `tests/contract` | Portal con esquema `N` contra app `N-1` y viceversa |
-| `fuzzy_desktop/tests` | Controladores de escritorio (auth, agenda, clínica, caja, portal) |
-| `fuzzy_desktop/tests/visual` | 15 baselines con DejaVu empaquetada y fecha fija |
+| `fuzzy_desktop/tests` | 13 casos de controladores de escritorio (auth, agenda, clínica, caja, portal, flujo clínico) |
+| `fuzzy_desktop/tests/visual` | 17 baselines con DejaVu empaquetada y fecha fija, incluidos `clinico` y `clinico-laboratorio` |
+| `fuzzy_core/tests/tst_clinico` | Seis flujos clínicos de punta a punta y la matriz de autorización por rol y clínica |
 | `fuzzy_mobile/tests` | 8 casos de controlador (offline → sync, selector de portales, revocación, cierre de sesión) y carga real de `Main.qml` con el directorio embebido |
 
-CI: `schema` (Atlas + SQLite efímero + seed), `qt` (Qt 6.11.2 + `ctest` + `qmllint`), `portal` (proyección y aislamiento), `desktop` (baselines de la fase 7), `movil` (cifrado, servicios, controladores, lint y escaneo del binario), `contract`. El despliegue a producción es un runbook por clínica; solo el esquema de Turso y el directorio se automatizan.
+CI: `schema` (Atlas + SQLite efímero + seed), `qt` (Qt 6.11.2 + `ctest` + `qmllint`), `portal` (proyección y aislamiento), `desktop` (baselines de la fase 7), `movil` (cifrado, servicios, controladores, lint y escaneo del binario), `clinico` (flujos clínicos, permisos, migración `0006` y puente QML), `contract`. El despliegue a producción es un runbook por clínica; solo el esquema de Turso y el directorio se automatizan.
 
 ---
 

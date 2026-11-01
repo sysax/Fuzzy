@@ -14,6 +14,7 @@ private slots:
     void recepcionPuedeEmitirFactura();
     void rolDesconocidoNoPuedeHacerNada();
     void elContextoDeOtraClinicaNoSeAcepta();
+    void estilistaPuedeRegistrarEstetica();
 };
 
 void TstPoliticas::matrizCoincideConElSnapshot()
@@ -41,7 +42,8 @@ void TstPoliticas::matrizCoincideConElSnapshot()
                                      fuzzy::core::Permiso::CerrarCaja, fuzzy::core::Permiso::GestionarInventario,
                                      fuzzy::core::Permiso::AprobarVinculo}},
         {fuzzy::core::Rol::Estilista, {fuzzy::core::Permiso::VerPanel, fuzzy::core::Permiso::GestionarCitas,
-                                     fuzzy::core::Permiso::GestionarInventario}},
+                                     fuzzy::core::Permiso::GestionarInventario,
+                                     fuzzy::core::Permiso::RegistrarEstetica}},
         {fuzzy::core::Rol::Cliente,  {}},
         {fuzzy::core::Rol::Desconocido, {}},
     };
@@ -103,6 +105,18 @@ void TstPoliticas::elContextoDeOtraClinicaNoSeAcepta()
                                                 QString(), QStringLiteral("clinica-b") };
 
     QVERIFY(!politicas.exigir(sesion, fuzzy::core::Permiso::GestionarCitas, contexto));
+}
+
+void TstPoliticas::estilistaPuedeRegistrarEstetica()
+{
+    const fuzzy::core::Politicas politicas;
+    const fuzzy::core::Sesion sesion{ fuzzy::core::Rol::Estilista, QStringLiteral("clinica-a"), QString() };
+    const fuzzy::core::ContextoPermiso contexto{ QStringLiteral("estetica_servicios"),
+                                                fuzzy::core::Accion::Crear,
+                                                QString(), QStringLiteral("clinica-a") };
+
+    QVERIFY(politicas.exigir(sesion, fuzzy::core::Permiso::RegistrarEstetica, contexto));
+    QVERIFY(!politicas.exigir(sesion, fuzzy::core::Permiso::RegistrarConsulta, contexto));
 }
 
 QTEST_MAIN(TstPoliticas)

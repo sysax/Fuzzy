@@ -1,5 +1,6 @@
 #include "agenda/AgendaController.h"
 #include "ajustes/AjustesController.h"
+#include "clinico/ClinicoController.h"
 #include "facturacion/FacturacionController.h"
 #include "fuzzy/core/AuthService.h"
 #include "fuzzy/core/MigrationRunner.h"
@@ -156,6 +157,7 @@ private slots:
     void vinculosDelPortal();
     void agendaDeCitas();
     void ajustesDeClinica();
+    void clinicoFlujo();
 };
 
 void ControladoresTest::bootstrapYLogin()
@@ -706,6 +708,63 @@ void ControladoresTest::ajustesDeClinica()
     ajustes.restablecerPassword(marcoUuid);
     QVERIFY(ajustes.error().isEmpty());
     QCOMPARE(ajustes.passwordTemporal().size(), 12);
+}
+
+void ControladoresTest::clinicoFlujo()
+{
+    Base base;
+    const QString cliente = crearCliente(*base.db, QStringLiteral("Ana Clínica"),
+                                         QStringLiteral("ana.clinica@pruebas.test"));
+    const QString mascota = crearMascota(*base.db, cliente, QStringLiteral("Luna"));
+
+    const QString clinica = base.db
+                                ->query(QStringLiteral("SELECT uuid FROM clinicas LIMIT 1"))
+                                .front()
+                                .values.front()
+                                .toString();
+    QVERIFY(!clinica.isEmpty());
+
+    const QString cita = fuzzy::core::uuidNuevo();
+    insertar(*base.db,
+             QStringLiteral("INSERT INTO citas "
+                            "(uuid, mascota_id, tipo_servicio_id, estado_cita_id, "
+                            " fecha_hora_programada, prioridad, es_emergencia, origen, "
+                            " created_at, updated_at, sync_state) "
+                            "VALUES (?, (SELECT id FROM mascotas WHERE uuid = ?), 1, 1, "
+                            "        strftime('%s','now') * 1000, 'Normal', 0, 'mostrador', "
+                            "        strftime('%s','now') * 1000, "
+                            "        strftime('%s','now') * 1000, 'pendiente')"),
+             {QVariant(cita), QVariant(mascota)});
+
+    fuzzy::desktop::ClinicoController clinico(*base.db);
+    clinico.setSesion(QStringLiteral("Admin"), clinica, base.adminUuid);
+    QCOMPARE(clinico.rol(), QStringLiteral("Admin"));
+
+    clinico.recibir(cita);
+    QVERIFY2(clinico.error().isEmpty(), qPrintable(clinico.error()));
+    QCOMPARE(clinico.agendaDelDia().size(), 1);
+    QCOMPARE(clinico.resumen().value(QStringLiteral("enEspera")).toInt(), 1);
+
+    clinico.abrirConsulta(mascota, cita, QStringLiteral("Control anual"), false);
+    QVERIFY2(clinico.error().isEmpty(), qPrintable(clinico.error()));
+    QCOMPARE(clinico.consultasAbiertas().size(), 1);
+
+    const QString consulta = clinico.consultasAbiertas()
+                                 .first()
+                                 .toMap()
+                                 .value(QStringLiteral("uuid"))
+                                 .toString();
+    QVERIFY(!consulta.isEmpty());
+    clinico.cerrarConsulta(consulta, QStringLiteral("Paciente sana"), QString(),
+                           QStringLiteral("Sin hallazgos"));
+    QVERIFY2(clinico.error().isEmpty(), qPrintable(clinico.error()));
+    QCOMPARE(clinico.consultasAbiertas().size(), 0);
+    QCOMPARE(clinico.mensaje(), QStringLiteral("Consulta cerrada y firmada."));
+
+    // El controlador no inventa permisos: Recepción no abre consultas.
+    clinico.setSesion(QStringLiteral("Recepcion"), clinica, base.adminUuid);
+    clinico.abrirConsulta(mascota, QString(), QStringLiteral("No permitido"), false);
+    QVERIFY(!clinico.error().isEmpty());
 }
 
 QTEST_GUILESS_MAIN(ControladoresTest)

@@ -159,6 +159,129 @@ EntidadSync entidadSignos()
     };
 }
 
+EntidadSync entidadLaboratorio()
+{
+    return {
+        QStringLiteral("laboratorio_solicitudes"),
+        QStringLiteral("laboratorio_solicitudes"),
+        {QStringLiteral("uuid"), QStringLiteral("tipo_examen"),
+         QStringLiteral("prioridad"), QStringLiteral("estado"),
+         QStringLiteral("fecha_solicitud"), QStringLiteral("fecha_resultado"),
+         QStringLiteral("resultado"), QStringLiteral("observaciones"),
+         QStringLiteral("created_at"), QStringLiteral("updated_at"),
+         QStringLiteral("deleted_at")},
+        {{QStringLiteral("mascota_id"), QStringLiteral("mascotas"),
+          QStringLiteral("mascota_uuid"), true},
+         {QStringLiteral("consulta_id"), QStringLiteral("consultas_medicas"),
+          QStringLiteral("consulta_uuid"), false},
+         {QStringLiteral("veterinario_id"), QStringLiteral("usuarios"),
+          QStringLiteral("veterinario_uuid"), false},
+         {QStringLiteral("tipo_examen_id"), QStringLiteral("tipos_examen_laboratorio"),
+          QStringLiteral("tipo_examen_uuid"), false}},
+        45,
+    };
+}
+
+EntidadSync entidadHospitalizacion()
+{
+    return {
+        QStringLiteral("hospitalizaciones"),
+        QStringLiteral("hospitalizaciones"),
+        {QStringLiteral("uuid"), QStringLiteral("fecha_ingreso"),
+         QStringLiteral("fecha_alta"), QStringLiteral("motivo"),
+         QStringLiteral("diagnostico"), QStringLiteral("area"),
+         QStringLiteral("estado"), QStringLiteral("notas"),
+         QStringLiteral("created_at"), QStringLiteral("updated_at"),
+         QStringLiteral("deleted_at")},
+        {{QStringLiteral("mascota_id"), QStringLiteral("mascotas"),
+          QStringLiteral("mascota_uuid"), true},
+         {QStringLiteral("consulta_id"), QStringLiteral("consultas_medicas"),
+          QStringLiteral("consulta_uuid"), false},
+         {QStringLiteral("veterinario_id"), QStringLiteral("usuarios"),
+          QStringLiteral("veterinario_uuid"), false}},
+        45,
+    };
+}
+
+EntidadSync entidadEvolucion()
+{
+    return {
+        QStringLiteral("hospitalizacion_evoluciones"),
+        QStringLiteral("hospitalizacion_evoluciones"),
+        {QStringLiteral("uuid"), QStringLiteral("fecha"), QStringLiteral("nota"),
+         QStringLiteral("peso_kg"), QStringLiteral("temperatura_c"),
+         QStringLiteral("frecuencia_cardiaca"), QStringLiteral("created_at"),
+         QStringLiteral("updated_at"), QStringLiteral("deleted_at")},
+        {{QStringLiteral("hospitalizacion_id"), QStringLiteral("hospitalizaciones"),
+          QStringLiteral("hospitalizacion_uuid"), true},
+         {QStringLiteral("usuario_id"), QStringLiteral("usuarios"),
+          QStringLiteral("usuario_uuid"), false}},
+        50,
+    };
+}
+
+EntidadSync entidadCirugia()
+{
+    return {
+        QStringLiteral("cirugias"),
+        QStringLiteral("cirugias"),
+        {QStringLiteral("uuid"), QStringLiteral("fecha_programada"),
+         QStringLiteral("fecha_inicio"), QStringLiteral("fecha_fin"),
+         QStringLiteral("procedimiento"), QStringLiteral("anestesia"),
+         QStringLiteral("diagnostico_pre"), QStringLiteral("diagnostico_post"),
+         QStringLiteral("estado"), QStringLiteral("notas"),
+         QStringLiteral("created_at"), QStringLiteral("updated_at"),
+         QStringLiteral("deleted_at")},
+        {{QStringLiteral("mascota_id"), QStringLiteral("mascotas"),
+          QStringLiteral("mascota_uuid"), true},
+         {QStringLiteral("consulta_id"), QStringLiteral("consultas_medicas"),
+          QStringLiteral("consulta_uuid"), false},
+         {QStringLiteral("hospitalizacion_id"), QStringLiteral("hospitalizaciones"),
+          QStringLiteral("hospitalizacion_uuid"), false},
+         {QStringLiteral("veterinario_id"), QStringLiteral("usuarios"),
+          QStringLiteral("veterinario_uuid"), false}},
+        50,
+    };
+}
+
+EntidadSync entidadEstetica()
+{
+    return {
+        QStringLiteral("estetica_servicios"),
+        QStringLiteral("estetica_servicios"),
+        {QStringLiteral("uuid"), QStringLiteral("fecha"), QStringLiteral("tipo"),
+         QStringLiteral("precio"), QStringLiteral("observaciones"),
+         QStringLiteral("estado"), QStringLiteral("created_at"),
+         QStringLiteral("updated_at"), QStringLiteral("deleted_at")},
+        {{QStringLiteral("mascota_id"), QStringLiteral("mascotas"),
+          QStringLiteral("mascota_uuid"), true},
+         {QStringLiteral("cita_id"), QStringLiteral("citas"),
+          QStringLiteral("cita_uuid"), false},
+         {QStringLiteral("estilista_id"), QStringLiteral("usuarios"),
+          QStringLiteral("estilista_uuid"), false},
+         {QStringLiteral("servicio_id"), QStringLiteral("servicios"),
+          QStringLiteral("servicio_uuid"), false}},
+        50,
+    };
+}
+
+EntidadSync entidadMovimientoInventario()
+{
+    return {
+        QStringLiteral("movimientos_inventario"),
+        QStringLiteral("movimientos_inventario"),
+        {QStringLiteral("uuid"), QStringLiteral("tipo"), QStringLiteral("cantidad"),
+         QStringLiteral("motivo"), QStringLiteral("referencia_tipo"),
+         QStringLiteral("referencia_id"), QStringLiteral("created_at"),
+         QStringLiteral("updated_at"), QStringLiteral("deleted_at")},
+        {{QStringLiteral("producto_id"), QStringLiteral("productos_insumos"),
+          QStringLiteral("producto_uuid"), true},
+         {QStringLiteral("usuario_id"), QStringLiteral("usuarios"),
+          QStringLiteral("usuario_uuid"), false}},
+        50,
+    };
+}
+
 QString sqlDeFila(const EntidadSync& entidad)
 {
     QStringList seleccion;
@@ -239,7 +362,9 @@ const QList<EntidadSync>& entidadesSync()
     static const QList<EntidadSync> entidades = {
         entidadCliente(),  entidadMascota(),       entidadCita(),
         entidadConsulta(), entidadReceta(),        entidadRecetaDetalle(),
-        entidadVacuna(),   entidadSignos(),
+        entidadVacuna(),   entidadSignos(),        entidadLaboratorio(),
+        entidadHospitalizacion(), entidadEvolucion(), entidadCirugia(),
+        entidadEstetica(), entidadMovimientoInventario(),
     };
     return entidades;
 }

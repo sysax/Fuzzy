@@ -1,5 +1,6 @@
 #include "agenda/AgendaController.h"
 #include "ajustes/AjustesController.h"
+#include "clinico/ClinicoController.h"
 #include "facturacion/FacturacionController.h"
 #include "fuzzy/core/AuthService.h"
 #include "fuzzy/core/MigrationRunner.h"
@@ -79,6 +80,7 @@ int main(int argc, char *argv[])
     fuzzy::desktop::PanelController panel(clinica);
     fuzzy::desktop::AgendaController agenda(clinica);
     fuzzy::desktop::PacientesController pacientes(clinica);
+    fuzzy::desktop::ClinicoController clinico(clinica);
     fuzzy::desktop::PropietariosController propietarios(clinica);
     fuzzy::desktop::InventarioController inventario(clinica);
     fuzzy::desktop::FacturacionController facturacion(clinica);
@@ -92,6 +94,7 @@ int main(int argc, char *argv[])
     contexto->setContextProperty(QStringLiteral("sesion"), &sesion);
     contexto->setContextProperty(QStringLiteral("panel"), &panel);
     contexto->setContextProperty(QStringLiteral("agenda"), &agenda);
+    contexto->setContextProperty(QStringLiteral("clinico"), &clinico);
     contexto->setContextProperty(QStringLiteral("pacientes"), &pacientes);
     contexto->setContextProperty(QStringLiteral("propietarios"), &propietarios);
     contexto->setContextProperty(QStringLiteral("inventario"), &inventario);

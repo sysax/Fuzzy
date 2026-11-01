@@ -6,6 +6,7 @@ add_library(fuzzy_core
     src/SqliteExecutor.cpp
     src/TursoHttpExecutor.cpp
     src/Politicas.cpp
+    src/ServicioClinico.cpp
     src/PortalBaseStore.cpp
     src/PortalTokenService.cpp
     src/PortalProvisioner.cpp
@@ -42,6 +43,7 @@ qt_add_resources(fuzzy_core "migraciones"
         "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0003_portal_token.sql"
         "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0004_sync.sql"
         "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0005_imagenes.sql"
+        "${CMAKE_SOURCE_DIR}/db/migrations/clinic/0006_clinico.sql"
         "${CMAKE_SOURCE_DIR}/db/migrations/mobile/0001_init.sql"
 )
 
