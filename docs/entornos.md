@@ -41,8 +41,23 @@ FuzzyCloud opera tres niveles de entorno: **local**, **staging** y **producción
 
 ## Producción
 
-- Se incorpora en la fase 10 del plan (producción y runbooks). Mientras tanto, los entornos remotas de
-  Atlas reservan las entradas `staging-*`; la documentación de producción llega con esa fase.
+- Una cuenta de Turso por clínica (D18): grupo `fuzzy-clinic-<slug>`, base de dominio
+  `fuzzy-clinic-<slug>` y base de buzón `fuzzy-inbox-<slug>`. Los portales son bases
+  `fuzzy-portal-<uuid>`, una por dueño.
+- Alta de una sede: `tools/provision-production.sh` (con `--dry-run` primero y
+  `--confirmar-produccion` después). Crea el grupo, las bases, el token de grupo y aplica las
+  migraciones de clínica y buzón. El token queda en `secrets/` con permisos `0600` y se mueve al
+  keyring del nodo.
+- Despliegue de esquema: workflow manual y protegido `deploy.yml`, con el entorno `production`
+  (revisores, rama `main` y secreto `TURSO_DATABASE_TOKEN` propios). Por defecto ejecuta una
+  simulación; solo escribe con `aplicar=true`.
+- Nodo: el escritorio aplica las migraciones embebidas al arrancar; `fuzzy-admin migrar` cubre el
+  caso de un nodo detenido o una base nueva.
+- Respaldos: `tools/backup.sh --db` para el máster y `tools/backup.sh --turso` para Turso, con
+  retención y verificación. Restauración: `fuzzy-admin restaurar --confirmar` (deja copia previa) y
+  simulacro con `tools/rollback-drill.sh`.
+- Operación: [`produccion.md`](produccion.md), [`runbook-master.md`](runbook-master.md),
+  [`runbook-portal.md`](runbook-portal.md) y [`registro-clinicas.md`](registro-clinicas.md).
 
 ## Variables de entorno
 
@@ -50,10 +65,13 @@ FuzzyCloud opera tres niveles de entorno: **local**, **staging** y **producción
 |---|---|
 | `TURSO_API_TOKEN` | Token de API de Turso para la CLI (scope mínimo, solo CI en adelante) |
 | `TURSO_DATABASE_TOKEN_STAGING` | Token de base de staging (`libsql://...?authToken=...`) |
+| `TURSO_DATABASE_TOKEN` | Token de base del entorno protegido en GitHub (`staging`/`production`) |
 | `TURSO_DB_STAGING` | Nombre de la base del directorio (`fuzzy-directory` por defecto) |
 | `TURSO_ORG` | Organización de Turso |
 | `TURSO` | Ruta a la CLI de Turso (default `tools/../.tools/bin/turso` vía script) |
 | `ATLAS` | Ruta a la CLI de Atlas |
+| `FUZZY_ADMIN` | Ruta a `fuzzy-admin` (default `build/fuzzy_admin/fuzzy-admin`) |
+| `FUZZY_BACKUP_DIR` | Destino de respaldos (default `backups/`, ignorado por Git) |
 | `QT_PREFIX` | Instalación de Qt 6.11.2 para build/QML |
 
 Los secretos (tokens de base, API) se configuran por entorno, nunca en Git. Ver

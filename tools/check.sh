@@ -64,4 +64,10 @@ for patron in token_portal portal_token token-clinica token-portal; do
     fi
 done
 
+printf '== secretos ==\n'
+"$ROOT/tools/scan-secrets.sh"
+
+printf '== simulacro de reversión ==\n'
+FUZZY_ADMIN="$ROOT/build/fuzzy_admin/fuzzy-admin" "$ROOT/tools/rollback-drill.sh"
+
 printf '\nTodo verde.\n'

@@ -90,6 +90,7 @@ fuzzy_esquema_test(tst_buzon_recoleccion)
 fuzzy_esquema_test(tst_solicitud_cita)
 fuzzy_esquema_test(tst_sync_engine)
 fuzzy_esquema_test(tst_clinico)
+fuzzy_esquema_test(tst_operador)
 
 # Fase 6: imágenes. FileStore no necesita esquema; las otras dos sí.
 qt_add_executable(tst_file_store tst_file_store.cpp)
