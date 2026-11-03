@@ -21,6 +21,9 @@ db/local/
 .env.*
 secrets/
 
+# Respaldos operativos (nunca en Git)
+backups/
+
 # Qt
 *.qmlc
 *.jsc

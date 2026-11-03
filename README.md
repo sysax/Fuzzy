@@ -4,7 +4,7 @@ Gestión para clínica veterinaria: escritorio para el personal, app para el due
 
 ## Estado
 
-**Fase 9 — flujo clínico, cerrada.** Las fases 0–9 están integradas; la siguiente es la fase 10 (producción y runbooks). El flujo clínico y su matriz de autorización se explican en [`docs/clinico.md`](docs/clinico.md); el motor de sync y la proyección, en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); las dos rutas de imagen y su límite, en [`docs/imagenes.md`](docs/imagenes.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
+**Fase 10 — producción y runbooks, cerrada.** Las fases 0–10 están integradas. El flujo clínico y su matriz de autorización se explican en [`docs/clinico.md`](docs/clinico.md); el motor de sync y la proyección, en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); las dos rutas de imagen y su límite, en [`docs/imagenes.md`](docs/imagenes.md); el alta, los respaldos y los runbooks, en [`docs/produccion.md`](docs/produccion.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Toolchain
 
@@ -31,7 +31,7 @@ export QT_PREFIX=/home/samir/Qt/6.11.2/gcc_64
 tools/check.sh
 ```
 
-El script reconstruye las cuatro bases, valida las migraciones, compila, ejecuta `ctest` y pasa `qmllint`. Por separado:
+El script reconstruye las cuatro bases, valida las migraciones, compila, ejecuta `ctest`, pasa `qmllint`, comprueba que el binario móvil no lleva tokens, escanea secretos y corre el simulacro de reversión. Por separado:
 
 ```bash
 cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="$QT_PREFIX"
@@ -61,13 +61,13 @@ atlas migrate validate --dir file://db/migrations/clinic
 ```
 fuzzy_core/       núcleo compartido (dominio, servicios, persistencia)
 fuzzy_desktop/    aplicación de escritorio (Qt Quick)
+fuzzy_mobile/     aplicación del dueño (Qt Quick)
+fuzzy_admin/      CLI de operador (fuzzy-admin)
 db/               migraciones y atlas.hcl
-tools/            scripts de desarrollo
-docs/             plan, origen y matriz de autorización
-tests/            suites transversales (a partir de la fase 1)
+tools/            scripts de desarrollo y operación
+docs/             plan, origen, runbooks y matriz de autorización
+tests/            suites transversales
 ```
-
-`fuzzy_server`, `fuzzy_admin` y `fuzzy_mobile` se crean en sus fases correspondientes.
 
 ## Documentos
 
@@ -76,3 +76,7 @@ tests/            suites transversales (a partir de la fase 1)
 - [`docs/imagenes.md`](docs/imagenes.md) — foto del portal y galería clínica en el nodo
 - [`docs/origen.md`](docs/origen.md) — procedencia del código
 - [`docs/matriz-autorizacion.md`](docs/matriz-autorizacion.md) — roles y permisos
+- [`docs/produccion.md`](docs/produccion.md) — entornos, secretos, alta, respaldos y release
+- [`docs/runbook-master.md`](docs/runbook-master.md) — operación del nodo de la sede
+- [`docs/runbook-portal.md`](docs/runbook-portal.md) — operación del portal de un dueño
+- [`docs/registro-clinicas.md`](docs/registro-clinicas.md) — sedes dadas de alta

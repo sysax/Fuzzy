@@ -25,3 +25,8 @@ if(FUZZY_BUILD_MOBILE)
     find_package(Qt6 6.11 REQUIRED COMPONENTS Quick QuickControls2 Network)
     add_subdirectory(fuzzy_mobile)
 endif()
+
+option(FUZZY_BUILD_ADMIN "Compila la CLI de operador (fase 10)" ON)
+if(FUZZY_BUILD_ADMIN)
+    add_subdirectory(fuzzy_admin)
+endif()

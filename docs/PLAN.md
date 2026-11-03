@@ -307,9 +307,11 @@ Cada subfase es una rama `feature/*` y un PR. Las fases 3 y 4 pueden solaparse; 
 | `fuzzy_desktop/tests` | 13 casos de controladores de escritorio (auth, agenda, clínica, caja, portal, flujo clínico) |
 | `fuzzy_desktop/tests/visual` | 17 baselines con DejaVu empaquetada y fecha fija, incluidos `clinico` y `clinico-laboratorio` |
 | `fuzzy_core/tests/tst_clinico` | Seis flujos clínicos de punta a punta y la matriz de autorización por rol y clínica |
+| `fuzzy_core/tests/tst_operador` | Estado, respaldo con checksum, restauración reversible, recuperación del último Admin y migración embebida |
+| `tools/rollback-drill.sh` | Simulacro de reversión: esquema efímero, respaldo, cambio, restauración y verificación |
 | `fuzzy_mobile/tests` | 8 casos de controlador (offline → sync, selector de portales, revocación, cierre de sesión) y carga real de `Main.qml` con el directorio embebido |
 
-CI: `schema` (Atlas + SQLite efímero + seed), `qt` (Qt 6.11.2 + `ctest` + `qmllint`), `portal` (proyección y aislamiento), `desktop` (baselines de la fase 7), `movil` (cifrado, servicios, controladores, lint y escaneo del binario), `clinico` (flujos clínicos, permisos, migración `0006` y puente QML), `contract`. El despliegue a producción es un runbook por clínica; solo el esquema de Turso y el directorio se automatizan.
+CI: `schema` (Atlas + SQLite efímero + seed), `qt` (Qt 6.11.2 + `ctest` + `qmllint`), `portal` (proyección y aislamiento), `desktop` (baselines de la fase 7), `movil` (cifrado, servicios, controladores, lint y escaneo del binario), `clinico` (flujos clínicos, permisos, migración `0006` y puente QML), `produccion` (operador, simulacro de reversión y puerta de secretos), `contract`. El despliegue a producción es un workflow manual y protegido (`deploy.yml`) para el esquema de Turso, más un runbook por clínica; el directorio se automatiza desde `main`.
 
 ---
 

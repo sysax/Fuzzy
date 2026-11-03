@@ -27,6 +27,7 @@ add_library(fuzzy_core
     src/DirectorioCliente.cpp
     src/BuzonCliente.cpp
     src/AuthService.cpp
+    src/OperadorService.cpp
 )
 add_library(fuzzy::core ALIAS fuzzy_core)
 

@@ -222,6 +222,38 @@ jobs:
       - name: qmllint de todas las vistas
         run: qmllint -I "$QT_ROOT_DIR/qml" fuzzy_desktop/qml/*.qml
 
+  produccion:
+    name: Producción (fase 10)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1-mesa-dev libegl1-mesa-dev sqlite3
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.2'
+          cache: true
+
+      - name: Configurar
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Compilar
+        run: cmake --build build
+
+      - name: "Operador: respaldo, restauración y recuperación de Admin"
+        run: ctest --test-dir build --output-on-failure -R tst_operador
+
+      - name: Simulacro de reversión
+        run: tools/rollback-drill.sh
+
+      - name: Puerta de secretos
+        run: tools/scan-secrets.sh
+
   contract:
     name: Contrato del portal
     runs-on: ubuntu-latest

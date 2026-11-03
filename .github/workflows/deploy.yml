@@ -1,0 +1,140 @@
+name: Desplegar esquema
+
+# Despliegue manual y protegido de un esquema Atlas contra Turso.
+#
+# El job toma el entorno de `inputs.entorno`; GitHub resuelve el secreto
+# `TURSO_DATABASE_TOKEN` del entorno correspondiente. En `production` el
+# entorno debe exigir revisores y limitar las ramas a `main` (ver
+# docs/produccion.md). El valor por defecto es una simulación: hay que marcar
+# `aplicar` para escribir.
+#
+# Los másters de clínica no se actualizan desde aquí: cada sede sigue su
+# runbook (docs/runbook-master.md). Este workflow aplica esquema a una base
+# Turso concreta (clínica, portal, buzón o directorio).
+
+on:
+  workflow_dispatch:
+    inputs:
+      entorno:
+        description: Entorno protegido
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      componente:
+        description: Esquema que se aplica
+        required: true
+        type: choice
+        options:
+          - clinic
+          - portal
+          - inbox
+          - directory
+      base:
+        description: Nombre exacto de la base Turso
+        required: true
+        type: string
+      aplicar:
+        description: Si es false solo se ejecuta la simulación
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.entorno }}-${{ inputs.base }}
+  cancel-in-progress: false
+
+jobs:
+  desplegar:
+    name: ${{ inputs.entorno }} · ${{ inputs.componente }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ inputs.entorno }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Atlas
+        run: |
+          curl -sSfL https://atlasbinaries.com/atlas/atlas-community-linux-amd64-v1.3.0 \
+            -o "$RUNNER_TEMP/atlas"
+          chmod +x "$RUNNER_TEMP/atlas"
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Validar destino
+        env:
+          TOKEN: ${{ secrets.TURSO_DATABASE_TOKEN }}
+          BASE: ${{ inputs.base }}
+          COMPONENTE: ${{ inputs.componente }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${TOKEN:-}" ]]; then
+            echo "Falta el secreto TURSO_DATABASE_TOKEN en el entorno." >&2
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          if [[ ! "$BASE" =~ ^fuzzy-[a-z0-9-]+$ ]]; then
+            echo "Nombre de base inválido: $BASE" >&2
+            exit 1
+          fi
+          case "$COMPONENTE" in
+            clinic|portal|inbox|directory) ;;
+            *) echo "Componente inválido: $COMPONENTE" >&2; exit 1 ;;
+          esac
+          echo "Destino confirmado: $BASE ($COMPONENTE) en ${{ inputs.entorno }}."
+
+      - name: Estado actual
+        env:
+          TOKEN: ${{ secrets.TURSO_DATABASE_TOKEN }}
+          BASE: ${{ inputs.base }}
+          COMPONENTE: ${{ inputs.componente }}
+        run: |
+          set -euo pipefail
+          atlas migrate status \
+            --dir "file://$PWD/db/migrations/$COMPONENTE" \
+            --url "libsql://$BASE?authToken=$TOKEN"
+
+      - name: Simulación
+        env:
+          TOKEN: ${{ secrets.TURSO_DATABASE_TOKEN }}
+          BASE: ${{ inputs.base }}
+          COMPONENTE: ${{ inputs.componente }}
+        run: |
+          set -euo pipefail
+          atlas migrate apply \
+            --dir "file://$PWD/db/migrations/$COMPONENTE" \
+            --url "libsql://$BASE?authToken=$TOKEN" \
+            --dry-run
+
+      - name: Aplicar
+        if: ${{ inputs.aplicar }}
+        env:
+          TOKEN: ${{ secrets.TURSO_DATABASE_TOKEN }}
+          BASE: ${{ inputs.base }}
+          COMPONENTE: ${{ inputs.componente }}
+        run: |
+          set -euo pipefail
+          atlas migrate apply \
+            --dir "file://$PWD/db/migrations/$COMPONENTE" \
+            --url "libsql://$BASE?authToken=$TOKEN"
+
+      - name: Estado final
+        env:
+          TOKEN: ${{ secrets.TURSO_DATABASE_TOKEN }}
+          BASE: ${{ inputs.base }}
+          COMPONENTE: ${{ inputs.componente }}
+        run: |
+          set -euo pipefail
+          atlas migrate status \
+            --dir "file://$PWD/db/migrations/$COMPONENTE" \
+            --url "libsql://$BASE?authToken=$TOKEN"
+          {
+            echo "### Despliegue ${{ inputs.entorno }}"
+            echo "- Base: \`$BASE\`"
+            echo "- Esquema: \`$COMPONENTE\`"
+            echo "- Aplicado: \`${{ inputs.aplicar }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
