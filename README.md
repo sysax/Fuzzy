@@ -4,7 +4,7 @@ Gestión para clínica veterinaria: escritorio para el personal, app para el due
 
 ## Estado
 
-**Fase 10 — producción y runbooks, cerrada.** Las fases 0–10 están integradas. El flujo clínico y su matriz de autorización se explican en [`docs/clinico.md`](docs/clinico.md); el motor de sync y la proyección, en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); las dos rutas de imagen y su límite, en [`docs/imagenes.md`](docs/imagenes.md); el alta, los respaldos y los runbooks, en [`docs/produccion.md`](docs/produccion.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md).
+**Fase 10 — producción y runbooks, cerrada.** Las fases 0–10 están integradas. El flujo clínico y su matriz de autorización se explican en [`docs/clinico.md`](docs/clinico.md); el motor de sync y la proyección, en [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md); las dos rutas de imagen y su límite, en [`docs/imagenes.md`](docs/imagenes.md); el alta, los respaldos y los runbooks, en [`docs/produccion.md`](docs/produccion.md); el plan completo, con las decisiones y las fases, está en [`docs/PLAN.md`](docs/PLAN.md). Para el uso diario, consulta el [manual de usuario](docs/manual-usuario.md); para el desarrollo y la operación, el [manual técnico](docs/manual-tecnico.md).
 
 ## Toolchain
 
@@ -71,6 +71,8 @@ tests/            suites transversales
 
 ## Documentos
 
+- [`docs/manual-usuario.md`](docs/manual-usuario.md) — manual de usuario del escritorio y del móvil
+- [`docs/manual-tecnico.md`](docs/manual-tecnico.md) — arquitectura, datos, seguridad, pruebas y despliegue
 - [`docs/PLAN.md`](docs/PLAN.md) — plan y decisiones
 - [`docs/sync-y-proyeccion.md`](docs/sync-y-proyeccion.md) — outbox, LWW, proyector y recolección
 - [`docs/imagenes.md`](docs/imagenes.md) — foto del portal y galería clínica en el nodo
